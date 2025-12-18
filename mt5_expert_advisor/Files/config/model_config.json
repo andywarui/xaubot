@@ -1,0 +1,54 @@
+{
+  "model_file": "lightgbm_xauusd.onnx",
+  "input_shape": [
+    1,
+    26
+  ],
+  "output_shape": [
+    1,
+    3
+  ],
+  "num_features": 26,
+  "num_classes": 3,
+  "feature_order": [
+    "body",
+    "body_abs",
+    "candle_range",
+    "close_position",
+    "return_1",
+    "return_5",
+    "return_15",
+    "return_60",
+    "tr",
+    "atr_14",
+    "rsi_14",
+    "ema_10",
+    "ema_20",
+    "ema_50",
+    "hour_sin",
+    "hour_cos",
+    "M5_trend",
+    "M5_position",
+    "M15_trend",
+    "M15_position",
+    "H1_trend",
+    "H1_position",
+    "H4_trend",
+    "H4_position",
+    "D1_trend",
+    "D1_position"
+  ],
+  "class_labels": [
+    "SHORT",
+    "HOLD",
+    "LONG"
+  ],
+  "opset_version": 12,
+  "export_date": "2025-12-12",
+  "notes": [
+    "Input: float32[1, 26] (batch_size=1, features=26)",
+    "Output: float32[1, 3] (batch_size=1, classes=3)",
+    "Probabilities sum to 1.0",
+    "Class 0 = SHORT, Class 1 = HOLD, Class 2 = LONG"
+  ]
+}

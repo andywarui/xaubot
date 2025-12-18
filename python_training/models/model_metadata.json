@@ -1,0 +1,8 @@
+{
+  "num_features": 26,
+  "num_classes": 3,
+  "train_samples": 4620320,
+  "val_samples": 990069,
+  "accuracy": 0.6625285712409943,
+  "best_iteration": 468
+}

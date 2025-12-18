@@ -1,0 +1,25 @@
+# Transformer/Hybrid Model Requirements
+# Install with: pip install -r requirements_transformer.txt
+
+# PyTorch (CPU version for training)
+# For GPU: pip install torch --index-url https://download.pytorch.org/whl/cu118
+torch
+
+# Data processing
+pandas
+numpy
+pyarrow  # For parquet file support
+
+# Machine learning
+scikit-learn
+lightgbm
+
+# ONNX export
+onnx
+onnxruntime
+
+# Progress bars
+tqdm
+
+# Config files
+pyyaml

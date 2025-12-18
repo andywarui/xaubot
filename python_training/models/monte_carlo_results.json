@@ -1,0 +1,27 @@
+{
+  "num_simulations": 10000,
+  "initial_capital": 50.0,
+  "num_trades": 64309,
+  "percentiles": {
+    "final_equity": {
+      "p5": 195776.71875,
+      "p25": 195776.71875,
+      "p50": 195776.71875,
+      "p75": 195776.71875,
+      "p95": 195776.71875
+    },
+    "max_drawdown": {
+      "p5": 0.035789473684210524,
+      "p25": 0.04843304843304843,
+      "p50": 0.0633147113594041,
+      "p75": 0.08960928770367406,
+      "p95": 0.1452991452991453
+    }
+  },
+  "risk_metrics": {
+    "probability_of_ruin": 0.0,
+    "probability_of_profit": 100.0,
+    "expected_final_equity": 195776.71875,
+    "expected_max_drawdown": 0.07313225577871968
+  }
+}

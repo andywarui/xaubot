@@ -1,0 +1,32 @@
+# Core dependencies
+pandas
+numpy
+matplotlib
+seaborn
+
+# Technical analysis
+ta
+pandas_ta
+
+# Machine learning
+scikit-learn
+lightgbm
+xgboost
+
+# Deep learning
+torch
+torchvision
+
+# ONNX (install manually if needed: pip install onnxruntime)
+onnx
+
+# MT5 connection
+MetaTrader5
+
+# Data download
+duka
+
+# Utilities
+tqdm
+pyyaml
+python-dotenv

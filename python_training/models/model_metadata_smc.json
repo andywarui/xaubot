@@ -1,0 +1,8 @@
+{
+  "model_type": "LightGBM-SMC-Filtered",
+  "smc_filter": "score >= 3",
+  "train_samples": 87180,
+  "test_samples": 21796,
+  "accuracy": 0.4777482106808589,
+  "best_iteration": 48
+}

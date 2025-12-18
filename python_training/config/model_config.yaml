@@ -1,0 +1,21 @@
+# Model architecture configuration
+
+model_type: "custom"  # Options: custom, transfer_sspt, ensemble
+
+custom:
+  architecture: "hybrid_3head"
+  input_dim: 60
+  hidden_dim: 128
+  dropout: 0.2
+
+training:
+  epochs: 50
+  batch_size: 256
+  learning_rate: 0.001
+  optimizer: "adam"
+  
+risk:
+  starting_equity: 50.0
+  risk_percent: 5.0
+  max_daily_trades: 5
+  trailing_activation: 10.0

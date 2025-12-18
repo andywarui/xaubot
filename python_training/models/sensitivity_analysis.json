@@ -1,0 +1,162 @@
+[
+  {
+    "scenario": "ORIGINAL (Optimistic)",
+    "config": {
+      "name": "ORIGINAL (Optimistic)",
+      "confidence_threshold": 0.6,
+      "tp_pips": 80,
+      "sl_pips": 40,
+      "spread_pips": 1.25,
+      "slippage_pips": 0,
+      "commission_usd": 0,
+      "initial_capital": 50.0,
+      "risk_percent": 0.05,
+      "use_compounding": false
+    },
+    "metrics": {
+      "total_trades": 64309,
+      "win_rate": 0.7599713881416287,
+      "profit_factor": 5.773604103470878,
+      "net_profit": 195726.71875,
+      "gross_profit": 236728.59375,
+      "gross_loss": 41001.875,
+      "max_drawdown": 0.03512396694214876,
+      "final_equity": 195776.71875,
+      "total_return": 3914.534375,
+      "long_trades": 9694,
+      "long_win_rate": 0.6811429750361048,
+      "long_pnl": 23772.8125,
+      "short_trades": 54615,
+      "short_win_rate": 0.773963196923922,
+      "short_pnl": 171953.90625
+    }
+  },
+  {
+    "scenario": "REALISTIC (Conservative)",
+    "config": {
+      "name": "REALISTIC (Conservative)",
+      "confidence_threshold": 0.6,
+      "tp_pips": 80,
+      "sl_pips": 40,
+      "spread_pips": 2.5,
+      "slippage_pips": 1.0,
+      "commission_usd": 0,
+      "initial_capital": 50.0,
+      "risk_percent": 0.02,
+      "use_compounding": false
+    },
+    "metrics": {
+      "total_trades": 64309,
+      "win_rate": 0.7599713881416287,
+      "profit_factor": 5.093403900537424,
+      "net_profit": 72663.65,
+      "gross_profit": 90415.05000000002,
+      "gross_loss": 17751.399999999998,
+      "max_drawdown": 0.026018099547511463,
+      "final_equity": 72713.64999998221,
+      "total_return": 1453.2729999996443,
+      "long_trades": 9694,
+      "long_win_rate": 0.6811429750361048,
+      "long_pnl": 8660.9,
+      "short_trades": 54615,
+      "short_win_rate": 0.773963196923922,
+      "short_pnl": 64002.75
+    }
+  },
+  {
+    "scenario": "VERY CONSERVATIVE",
+    "config": {
+      "name": "VERY CONSERVATIVE",
+      "confidence_threshold": 0.65,
+      "tp_pips": 80,
+      "sl_pips": 40,
+      "spread_pips": 3.0,
+      "slippage_pips": 1.5,
+      "commission_usd": 0.1,
+      "initial_capital": 50.0,
+      "risk_percent": 0.01,
+      "use_compounding": false
+    },
+    "metrics": {
+      "total_trades": 51538,
+      "win_rate": 0.7901548372074974,
+      "profit_factor": 4.376026789619025,
+      "net_profit": 25330.012500000004,
+      "gross_profit": 32832.91875000001,
+      "gross_loss": 7502.906249999998,
+      "max_drawdown": 0.02091183119819124,
+      "final_equity": 25380.012500019016,
+      "total_return": 506.60025000038036,
+      "long_trades": 6568,
+      "long_win_rate": 0.7123934226552984,
+      "long_pnl": 2461.9500000000007,
+      "short_trades": 44970,
+      "short_win_rate": 0.8015121191905715,
+      "short_pnl": 22868.0625
+    }
+  },
+  {
+    "scenario": "TIGHT TP/SL",
+    "config": {
+      "name": "TIGHT TP/SL",
+      "confidence_threshold": 0.6,
+      "tp_pips": 60,
+      "sl_pips": 40,
+      "spread_pips": 2.5,
+      "slippage_pips": 1.0,
+      "commission_usd": 0,
+      "initial_capital": 50.0,
+      "risk_percent": 0.02,
+      "use_compounding": false
+    },
+    "metrics": {
+      "total_trades": 64309,
+      "win_rate": 0.7599713881416287,
+      "profit_factor": 3.716808251743526,
+      "net_profit": 48227.149999999994,
+      "gross_profit": 65978.55000000002,
+      "gross_loss": 17751.399999999998,
+      "max_drawdown": 0.029715762273901974,
+      "final_equity": 48277.14999994133,
+      "total_return": 964.5429999988265,
+      "long_trades": 9694,
+      "long_win_rate": 0.6811429750361048,
+      "long_pnl": 5359.4,
+      "short_trades": 54615,
+      "short_win_rate": 0.773963196923922,
+      "short_pnl": 42867.74999999999
+    }
+  },
+  {
+    "scenario": "WIDE TP/SL",
+    "config": {
+      "name": "WIDE TP/SL",
+      "confidence_threshold": 0.6,
+      "tp_pips": 100,
+      "sl_pips": 50,
+      "spread_pips": 2.5,
+      "slippage_pips": 1.0,
+      "commission_usd": 0,
+      "initial_capital": 50.0,
+      "risk_percent": 0.02,
+      "use_compounding": false
+    },
+    "metrics": {
+      "total_trades": 64309,
+      "win_rate": 0.7599713881416287,
+      "profit_factor": 5.3146424869507225,
+      "net_profit": 74592.91999999998,
+      "gross_profit": 91881.23999999995,
+      "gross_loss": 17288.320000000007,
+      "max_drawdown": 0.02513464991023351,
+      "final_equity": 74642.91999997586,
+      "total_return": 1491.8583999995171,
+      "long_trades": 9694,
+      "long_win_rate": 0.6811429750361048,
+      "long_pnl": 8951.719999999996,
+      "short_trades": 54615,
+      "short_win_rate": 0.773963196923922,
+      "short_pnl": 65641.19999999998
+    }
+  }
+]

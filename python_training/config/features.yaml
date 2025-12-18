@@ -1,0 +1,29 @@
+# Feature engineering configuration
+
+technical_indicators:
+  - atr_14
+  - atr_5
+  - rsi_14
+  - ema_12
+  - ema_26
+  - sma_50
+  - sma_200
+  - macd
+  - bollinger_bands
+  - vwap
+
+market_structure:
+  - swing_highs_lows
+  - order_blocks
+  - fair_value_gaps
+  - liquidity_sweeps
+
+orderflow:
+  - cumulative_delta
+  - volume_profile
+  - absorption_exhaustion
+
+time_features:
+  - hour
+  - minutes_since_ny_open
+  - session_position

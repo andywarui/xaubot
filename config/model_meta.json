@@ -1,0 +1,14 @@
+{
+  "confidence_threshold": 0.60,
+  "label_params": {
+    "tp_pips": 80,
+    "sl_pips": 40,
+    "forward_bars": 12
+  },
+  "training_params": {
+    "n_estimators": 500,
+    "learning_rate": 0.05,
+    "num_leaves": 31,
+    "class_weight": "balanced"
+  }
+}

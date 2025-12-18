@@ -1,0 +1,25 @@
+# Path configuration
+data_raw: "data/raw"
+data_processed: "data/processed"
+models: "python_training/models"
+
+raw_files:
+  m1: "data/raw/XAU_1m_data.jsonl"
+  m5: "data/raw/XAU_5m_data.jsonl"
+  m15: "data/raw/XAU_15m_data.jsonl"
+  m30: "data/raw/XAU_30m_data.jsonl"
+  h1: "data/raw/XAU_1h_data.jsonl"
+  h4: "data/raw/XAU_4h_data.jsonl"
+  d1: "data/raw/XAU_1d_data.jsonl"
+  w1: "data/raw/XAU_1w_data.jsonl"
+
+raw_date_format: "%Y.%m.%d %H:%M"
+
+train_test_split:
+  train_ratio: 0.70
+  val_ratio: 0.15
+  test_ratio: 0.15
+
+trading_session:
+  start_hour: 12
+  end_hour: 17

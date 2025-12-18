@@ -1,0 +1,12 @@
+{
+  "total_trades": 64309,
+  "win_rate": 0.76,
+  "profit_factor": 5.77,
+  "net_profit": 195726.72,
+  "max_drawdown": 0.0351,
+  "final_equity": 195776.72,
+  "long_trades": 9694,
+  "long_win_rate": 0.6811,
+  "short_trades": 54615,
+  "short_win_rate": 0.774
+}

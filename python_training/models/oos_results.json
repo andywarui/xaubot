@@ -1,0 +1,32 @@
+[
+  {
+    "scenario": "REALISTIC OOS",
+    "metrics": {
+      "total_trades": 15324,
+      "win_rate": 0.7408640041764553,
+      "profit_factor": 4.599224814689106,
+      "net_profit": 16436.399999999998,
+      "final_equity": 16486.400000003738
+    }
+  },
+  {
+    "scenario": "CONSERVATIVE OOS",
+    "metrics": {
+      "total_trades": 11597,
+      "win_rate": 0.7714926274036389,
+      "profit_factor": 3.9237225905150455,
+      "net_profit": 5375.08125,
+      "final_equity": 5425.0812499992835
+    }
+  },
+  {
+    "scenario": "LIVE-READY OOS",
+    "metrics": {
+      "total_trades": 8320,
+      "win_rate": 0.8050480769230769,
+      "profit_factor": 3.674252648135382,
+      "net_profit": 1721.5,
+      "final_equity": 1771.5000000002924
+    }
+  }
+]

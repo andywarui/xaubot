@@ -1,0 +1,15 @@
+{
+  "config": {
+    "confidence_threshold": 0.55,
+    "initial_capital": 50.0,
+    "risk_percent": 0.05
+  },
+  "performance": {
+    "total_trades": 2332,
+    "win_rate": 0.6620926243567753,
+    "profit_factor": 1.9593908629441625,
+    "net_profit": 1890.0,
+    "return_percent": 3779.9999999999995,
+    "max_drawdown": -19.54022988505747
+  }
+}
