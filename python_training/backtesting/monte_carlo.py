@@ -30,8 +30,8 @@ class MonteCarloSimulator:
         self.results_dir = project_root / "python_training" / "backtesting" / "results"
         self.results_dir.mkdir(parents=True, exist_ok=True)
         
-        # Simulation parameters
-        self.n_simulations = 10000
+        # Simulation parameters (100K paths for high statistical confidence)
+        self.n_simulations = 100000
         self.confidence_levels = [0.05, 0.25, 0.50, 0.75, 0.95]
         
         # Trading parameters
