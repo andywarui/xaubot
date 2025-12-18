@@ -1,4 +1,6 @@
-import os
+"""
+Prepare Hybrid Features for LightGBM using trained Multi-TF Transformer.
+"""
 import json
 import pickle
 from pathlib import Path
@@ -8,17 +10,11 @@ import pandas as pd
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
-from torch.cuda.amp import GradScaler, autocast
-from sklearn.preprocessing import MinMaxScaler
-
-# -----------------------
-# Paths and basic config
-# -----------------------
+from torch.amp import autocast
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 DATA_DIR = ROOT_DIR / "data" / "processed"
 MODEL_DIR = ROOT_DIR / "python_training" / "models"
-MODEL_DIR.mkdir(parents=True, exist_ok=True)
 
 MODEL_PATH = MODEL_DIR / "multi_tf_transformer_price.pth"
 SCALER_PATH = MODEL_DIR / "multi_tf_scaler.pkl"
@@ -26,236 +22,190 @@ CONFIG_PATH = MODEL_DIR / "multi_tf_config.json"
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# -----------------------
-# Dataset for 5-TF merged arrays
-# X shape: (N, T, F)
-# y shape: (N,)
-# -----------------------
+FEATURE_COLS_26 = [
+    "body", "body_abs", "candle_range", "close_position",
+    "return_1", "return_5", "return_15", "return_60",
+    "tr", "atr_14", "rsi_14",
+    "ema_10", "ema_20", "ema_50",
+    "hour_sin", "hour_cos",
+    "M5_trend", "M5_position",
+    "M15_trend", "M15_position",
+    "H1_trend", "H1_position",
+    "H4_trend", "H4_position",
+    "D1_trend", "D1_position"
+]
 
-class MultiTFDataset(Dataset):
-    def __init__(self, X: np.ndarray, y: np.ndarray):
-        assert X.ndim == 3, f"Expected X shape (N,T,F), got {X.shape}"
-        assert y.ndim == 1 or (y.ndim == 2 and y.shape[1] == 1)
-        if y.ndim == 2:
-            y = y[:, 0]
-        self.X = X.astype(np.float32)
-        self.y = y.astype(np.float32)
+
+class MultiTFTransformer(nn.Module):
+    def __init__(self, feature_size=130, d_model=128, nhead=8, num_layers=3,
+                 dim_feedforward=512, dropout=0.15, seq_length=30):
+        super().__init__()
+        self.input_fc = nn.Linear(feature_size, d_model)
+        self.pos_embedding = nn.Parameter(torch.zeros(1, seq_length, d_model))
+        encoder_layer = nn.TransformerEncoderLayer(
+            d_model=d_model, nhead=nhead, dim_feedforward=dim_feedforward,
+            dropout=dropout, activation="gelu", batch_first=True
+        )
+        self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
+        self.layer_norm = nn.LayerNorm(d_model)
+        self.fc_out = nn.Sequential(
+            nn.Linear(d_model, d_model // 2), nn.GELU(),
+            nn.Dropout(dropout), nn.Linear(d_model // 2, 1)
+        )
+        nn.init.normal_(self.pos_embedding, mean=0, std=0.02)
+
+    def forward(self, src):
+        src = self.input_fc(src)
+        src = src + self.pos_embedding[:, :src.size(1), :]
+        encoded = self.transformer_encoder(src)
+        encoded = self.layer_norm(encoded)
+        return self.fc_out(encoded[:, -1, :])
+
+
+def load_and_merge_all_tfs(split="train"):
+    m1_df = pd.read_parquet(DATA_DIR / f"features_m1_{split}.parquet")
+    print(f"    M1 {split}: {len(m1_df):,} rows")
+    
+    available_cols = [c for c in FEATURE_COLS_26 if c in m1_df.columns]
+    X_m1 = m1_df[available_cols].values
+    close_prices = m1_df["close"].values if "close" in m1_df.columns else None
+    labels = m1_df["label"].values if "label" in m1_df.columns else None
+    times = pd.to_datetime(m1_df["time"].values)
+    
+    all_X = [X_m1]
+    for tf in ["m5", "m15", "h1", "d1"]:
+        tf_path = DATA_DIR / f"features_{tf}_{split}.parquet"
+        if not tf_path.exists():
+            X_tf = np.zeros((len(m1_df), len(available_cols)))
+        else:
+            tf_df = pd.read_parquet(tf_path)
+            print(f"    {tf.upper()} {split}: {len(tf_df):,} rows")
+            m1_times = pd.DataFrame({"time": times})
+            tf_features = tf_df[["time"] + available_cols].copy()
+            tf_features["time"] = pd.to_datetime(tf_features["time"])
+            merged = pd.merge_asof(
+                m1_times.sort_values("time"),
+                tf_features.sort_values("time"),
+                on="time", direction="backward"
+            )
+            X_tf = merged[available_cols].fillna(0).values
+        all_X.append(X_tf)
+    
+    X_combined = np.concatenate(all_X, axis=1)
+    print(f"    Combined shape: {X_combined.shape}")
+    return X_combined, close_prices, labels, times
+
+
+class SequenceDataset(Dataset):
+    def __init__(self, data, seq_length=30):
+        self.data = data
+        self.seq_length = seq_length
 
     def __len__(self):
-        return self.X.shape[0]
+        return max(0, len(self.data) - self.seq_length + 1)
 
     def __getitem__(self, idx):
-        return (
-            torch.from_numpy(self.X[idx]),         # (T, F)
-            torch.tensor(self.y[idx]).unsqueeze(0)  # (1,) -> (1)
-        )
+        return torch.tensor(self.data[idx:idx + self.seq_length], dtype=torch.float32)
 
-# -----------------------
-# Transformer model
-# -----------------------
 
-class TimeSeriesTransformer(nn.Module):
-    def __init__(
-        self,
-        feature_size: int,
-        d_model: int = 128,
-        nhead: int = 8,
-        num_layers: int = 4,
-        dim_feedforward: int = 256,
-        dropout: float = 0.1,
-        seq_len: int = 20,
-    ):
-        super().__init__()
-        self.seq_len = seq_len
-        self.d_model = d_model
+def generate_predictions(model, data_scaled, seq_length=30, batch_size=2048):
+    model.eval()
+    dataset = SequenceDataset(data_scaled, seq_length)
+    loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=4)
+    
+    predictions = []
+    with torch.no_grad():
+        for batch in loader:
+            batch = batch.to(DEVICE)
+            with autocast(device_type=DEVICE.type, enabled=(DEVICE.type == "cuda")):
+                preds = model(batch)
+            predictions.append(preds.cpu().numpy())
+    
+    predictions = np.concatenate(predictions, axis=0).flatten()
+    return np.concatenate([np.zeros(seq_length - 1), predictions])
 
-        self.input_fc = nn.Linear(feature_size, d_model)
-        self.pos_embedding = nn.Parameter(torch.zeros(1, seq_len, d_model))
-
-        encoder_layer = nn.TransformerEncoderLayer(
-            d_model=d_model,
-            nhead=nhead,
-            dim_feedforward=dim_feedforward,
-            dropout=dropout,
-            activation="relu",
-            batch_first=True,
-        )
-        self.encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
-        self.fc_out = nn.Linear(d_model, 1)
-
-    def forward(self, x):
-        # x: (B, T, F)
-        x = self.input_fc(x)  # (B, T, d_model)
-        x = x + self.pos_embedding[:, : x.size(1), :]  # broadcast
-        x = self.encoder(x)  # (B, T, d_model)
-        last = x[:, -1, :]   # (B, d_model)
-        out = self.fc_out(last)  # (B, 1)
-        return out
-
-# -----------------------
-# Utility: load pre-merged 5-TF features
-# Expecting files already created by your earlier pipeline
-#   X_train_5tf.npy, y_train.npy, etc.
-# -----------------------
-
-def load_5tf_arrays(split: str):
-    """
-    Expects:
-      DATA_DIR / f"X_5tf_{split}.npy"
-      DATA_DIR / f"y_{split}.npy"
-    """
-    X = np.load(DATA_DIR / f"X_5tf_{split}.npy")
-    # Handle 2D arrays (N, F) -> expand to 3D (N, 1, F)
-    if X.ndim == 2:
-        X = X[:, None, :]
-    y = np.load(DATA_DIR / f"y_{split}.npy")
-    return X, y
-
-# -----------------------
-# Training loop
-# -----------------------
-
-def train_model(
-    model,
-    train_loader,
-    val_loader,
-    epochs: int = 20,
-    lr: float = 1e-4,
-    device: torch.device = DEVICE,
-):
-    criterion = nn.MSELoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-
-    # Mixed precision scaler (named amp_scaler to avoid confusion with MinMaxScaler)
-    amp_scaler = GradScaler(enabled=(device.type == "cuda"))
-
-    model.to(device)
-
-    for epoch in range(1, epochs + 1):
-        model.train()
-        train_losses = []
-
-        for xb, yb in train_loader:
-            xb = xb.to(device)  # (B, T, F)
-            yb = yb.to(device)  # (B, 1)
-
-            optimizer.zero_grad()
-
-            with autocast(enabled=(device.type == "cuda")):
-                preds = model(xb)          # (B, 1)
-                loss = criterion(preds, yb)
-
-            amp_scaler.scale(loss).backward()
-            amp_scaler.step(optimizer)
-            amp_scaler.update()
-
-            train_losses.append(loss.item())
-
-        mean_train = float(np.mean(train_losses))
-
-        model.eval()
-        val_losses = []
-        with torch.no_grad(), autocast(enabled=(device.type == "cuda")):
-            for xb, yb in val_loader:
-                xb = xb.to(device)
-                yb = yb.to(device)
-                preds = model(xb)
-                loss = criterion(preds, yb)
-                val_losses.append(loss.item())
-
-        mean_val = float(np.mean(val_losses)) if val_losses else float("nan")
-        print(f"Epoch {epoch:03d} | Train {mean_train:.6f} | Val {mean_val:.6f}")
-
-    return model
-
-# -----------------------
-# Main
-# -----------------------
 
 def main():
+    print("=" * 70)
+    print("Preparing Hybrid Features using Trained Transformer")
+    print("=" * 70)
     print(f"Device: {DEVICE}")
 
-    # 1) Load raw 5-TF arrays
-    print("[1/5] Loading 5-TF train/val/test arrays...")
-    X_train_5tf, y_train = load_5tf_arrays("train")
-    X_val_5tf, y_val = load_5tf_arrays("val")
-    X_test_5tf, y_test = load_5tf_arrays("test")
-
-    # X shape: (N, T, F)
-    N_train, T, F = X_train_5tf.shape
-    print(f"  Train shape: {X_train_5tf.shape}, Test shape: {X_test_5tf.shape}")
-
-    # 2) Fit sklearn MinMaxScaler on *flattened* features, then reshape back
-    print("[2/5] Fitting MinMaxScaler on train features...")
-    # Flatten time dimension for scaling: (N*T, F)
-    X_train_flat = X_train_5tf.reshape(-1, F)
-    X_val_flat = X_val_5tf.reshape(-1, F)
-    X_test_flat = X_test_5tf.reshape(-1, F)
-
-    feature_scaler = MinMaxScaler()
-    feature_scaler.fit(X_train_flat)
-
-    X_train_scaled = feature_scaler.transform(X_train_flat).reshape(N_train, T, F)
-    X_val_scaled = feature_scaler.transform(X_val_flat).reshape(X_val_5tf.shape[0], T, F)
-    X_test_scaled = feature_scaler.transform(X_test_flat).reshape(X_test_5tf.shape[0], T, F)
-
-    # 3) Build loaders
-    print("[3/5] Building Dataloaders...")
-    train_ds = MultiTFDataset(X_train_scaled, y_train)
-    val_ds = MultiTFDataset(X_val_scaled, y_val)
-    test_ds = MultiTFDataset(X_test_scaled, y_test)
-
-    train_loader = DataLoader(train_ds, batch_size=256, shuffle=True, drop_last=True)
-    val_loader = DataLoader(val_ds, batch_size=256, shuffle=False, drop_last=False)
-    test_loader = DataLoader(test_ds, batch_size=256, shuffle=False, drop_last=False)
-
-    # 4) Init model and train
-    print("[4/5] Initializing Transformer model...")
-    model = TimeSeriesTransformer(
-        feature_size=F,
-        d_model=128,
-        nhead=8,
-        num_layers=4,
-        dim_feedforward=256,
-        dropout=0.1,
-        seq_len=T,
+    # Load model
+    print("\n[1/3] Loading trained model...")
+    with open(CONFIG_PATH) as f:
+        config = json.load(f)
+    
+    model = MultiTFTransformer(
+        feature_size=config["feature_size"], d_model=config["d_model"],
+        nhead=config["nhead"], num_layers=config["num_layers"],
+        dim_feedforward=config["dim_feedforward"], dropout=config["dropout"],
+        seq_length=config["seq_length"]
     )
+    model.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE, weights_only=True))
+    model.to(DEVICE)
+    model.eval()
+    print("    Model loaded!")
 
-    model = train_model(
-        model,
-        train_loader,
-        val_loader,
-        epochs=40,
-        lr=1e-4,
-        device=DEVICE,
-    )
+    # Load training data first to fit scaler
+    print("\n[2/3] Loading data and fitting scaler...")
+    X_train, close_train, labels_train, times_train = load_and_merge_all_tfs("train")
+    
+    # Fit MinMaxScaler on training data
+    from sklearn.preprocessing import MinMaxScaler
+    scaler = MinMaxScaler()
+    scaler.fit(X_train)
+    print("    Scaler fitted on training data!")
 
-    # 5) Save model, sklearn scaler, and config
-    print("[5/5] Saving model, scaler, and config...")
-    torch.save(model.state_dict(), MODEL_PATH)
-
-    # IMPORTANT: save only the sklearn MinMaxScaler here,
-    # not the torch.cuda.amp.GradScaler
-    with open(SCALER_PATH, "wb") as f:
-        pickle.dump(feature_scaler, f)
-
-    config = {
-        "feature_size": F,
-        "seq_len": T,
-        "d_model": 128,
-        "nhead": 8,
-        "num_layers": 4,
-        "dim_feedforward": 256,
-        "dropout": 0.1,
-        "device": str(DEVICE),
-        "timeframes": ["m1", "m5", "m15", "h1", "d1"],
+    # Process each split
+    print("\n[3/3] Processing splits...")
+    
+    splits_data = {
+        "train": (X_train, close_train, labels_train, times_train)
     }
-    with open(CONFIG_PATH, "w") as f:
-        json.dump(config, f, indent=2)
+    
+    # Load val and test
+    for split in ["val", "test"]:
+        print(f"\n  Loading {split}...")
+        X, close_prices, labels, times = load_and_merge_all_tfs(split)
+        splits_data[split] = (X, close_prices, labels, times)
+    
+    # Process all splits
+    for split in ["train", "val", "test"]:
+        print(f"\n  Processing {split}...")
+        X, close_prices, labels, times = splits_data[split]
+        
+        X_scaled = scaler.transform(X)
+        X_scaled = np.nan_to_num(X_scaled, nan=0.0, posinf=1.0, neginf=0.0)
+        
+        print(f"    Generating predictions...")
+        tf_predictions = generate_predictions(model, X_scaled, seq_length=config["seq_length"])
+        
+        hybrid_df = pd.DataFrame({
+            "time": times, "close": close_prices,
+            "label": labels, "multi_tf_signal": tf_predictions
+        })
+        
+        m1_df = pd.read_parquet(DATA_DIR / f"features_m1_{split}.parquet")
+        for col in [c for c in FEATURE_COLS_26 if c in m1_df.columns]:
+            hybrid_df[col] = m1_df[col].values
+        
+        out_path = DATA_DIR / f"hybrid_features_{split}.parquet"
+        hybrid_df.to_parquet(out_path, index=False)
+        print(f"    Saved: {out_path}")
+        print(f"    Shape: {hybrid_df.shape}")
+        print(f"    Label dist: {dict(hybrid_df['label'].value_counts())}")
 
-    print(f"Saved model to:   {MODEL_PATH}")
-    print(f"Saved scaler to:  {SCALER_PATH}")
-    print(f"Saved config to:  {CONFIG_PATH}")
+    # Save the correct scaler for future use
+    import pickle
+    with open(SCALER_PATH, "wb") as f:
+        pickle.dump(scaler, f)
+    print(f"\n    Saved correct scaler to: {SCALER_PATH}")
+
+    print("\n" + "=" * 70)
+    print("Hybrid Features Ready!")
+    print("Next: python python_training/train_lightgbm_hybrid.py")
+    print("=" * 70)
 
 
 if __name__ == "__main__":
