@@ -149,9 +149,15 @@ class StressTester:
         return df_all
     
     def load_model(self) -> lgb.Booster:
-        """Load trained LightGBM model."""
+        """Load trained LightGBM model.
+        
+        Note: Uses model_str instead of model_file to work around
+        LightGBM 4.6.0 Windows threading bug with file loading.
+        """
         model_path = self.models_dir / "lightgbm_balanced.txt"
-        return lgb.Booster(model_file=str(model_path))
+        with open(model_path, 'r', encoding='utf-8') as f:
+            model_str = f.read()
+        return lgb.Booster(model_str=model_str)
     
     def get_event_data(self, df: pd.DataFrame, event: Dict) -> pd.DataFrame:
         """Filter data for a specific stress event."""
