@@ -20,7 +20,7 @@ import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 from sklearn.preprocessing import MinMaxScaler
 from pathlib import Path
-from torch.cuda.amp import autocast, GradScaler
+from torch.amp import autocast, GradScaler
 import warnings
 
 warnings.filterwarnings('ignore')
@@ -184,7 +184,7 @@ def train_epoch(model, loader, criterion, optimizer, device, scaler):
 
         optimizer.zero_grad(set_to_none=True)
 
-        with autocast(device_type="cuda", dtype=torch.float16, enabled=(device == "cuda")):
+        with autocast(device_type="cuda", enabled=(device.type == "cuda")):
             output = model(x_batch)
             loss = criterion(output, y_batch)
 
@@ -303,7 +303,7 @@ def main():
     print("=" * 70)
 
     project_root = Path(__file__).parent.parent
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Device: {device}")
 
     # -------------------------------------------------------------------------
@@ -414,7 +414,7 @@ def main():
     criterion = nn.HuberLoss(delta=1.0)  # Robust to outliers
     optimizer = torch.optim.AdamW(model.parameters(), lr=LEARNING_RATE, weight_decay=0.01)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=10, T_mult=2)
-    scaler = GradScaler(enabled=(device == "cuda"))
+    scaler = GradScaler(enabled=(device.type == "cuda"))
 
     # -------------------------------------------------------------------------
     # Training Loop

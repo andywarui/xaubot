@@ -16,8 +16,8 @@
   "num_layers": 3,
   "dim_feedforward": 512,
   "dropout": 0.15,
-  "best_val_loss": 0.0012269228951511703,
-  "direction_accuracy": 0.7294449186139884,
+  "best_val_loss": 0.0013495185269653308,
+  "direction_accuracy": 0.6980712803082719,
   "feature_cols_per_tf": [
     "body",
     "body_abs",
