@@ -110,16 +110,20 @@ class RealityGapTester:
         """Generate trading signals."""
         X = df[self.feature_cols].values
         proba = model.predict(X)
-        
+
         short_thresh = self.thresholds.get("SHORT", 0.48)
         long_thresh = self.thresholds.get("LONG", 0.40)
-        
+
         signals = []
         for i in range(len(df)):
             p = proba[i]
-            label = df["label"].iloc[i]
+            # Convert label to int to ensure proper comparison (handles float labels like 0.0, 1.0, 2.0)
+            label_raw = df["label"].iloc[i]
+            if pd.isna(label_raw):
+                continue  # Skip rows with NaN labels
+            label = int(round(label_raw))
             time = df["time"].iloc[i] if "time" in df.columns else None
-            
+
             if p[0] >= short_thresh and p[0] >= p[2]:
                 direction = -1
                 confidence = p[0]
@@ -128,7 +132,7 @@ class RealityGapTester:
                 confidence = p[2]
             else:
                 continue
-            
+
             signals.append({
                 "idx": i,
                 "time": time,
@@ -136,34 +140,35 @@ class RealityGapTester:
                 "confidence": confidence,
                 "label": label,
             })
-        
+
         return pd.DataFrame(signals)
     
     def simulate_with_friction(self, signals_df: pd.DataFrame, level: int) -> Dict:
         """Simulate trading with specified friction level."""
         friction = self.friction_levels[level]
-        
+
         capital = self.initial_capital
         peak = capital
-        max_drawdown = 0
-        
+        max_drawdown = 0.0
+
         trades_executed = 0
         trades_skipped = 0
-        total_costs = 0
+        hold_trades = 0  # Trades where label == 1 (no TP/SL hit)
+        total_costs = 0.0
         winning_trades = 0
         losing_trades = 0
-        total_pnl = 0
-        
+        total_pnl = 0.0
+
         for _, signal in signals_df.iterrows():
             direction = signal["direction"]
-            label = signal["label"]
+            label = int(signal["label"])  # Ensure integer comparison
             time = signal["time"]
-            
+
             # Check partial fill
             if np.random.random() > friction["fill_rate"]:
                 trades_skipped += 1
                 continue
-            
+
             # Calculate base PnL
             if direction == 1:  # LONG
                 if label == 2:
@@ -172,6 +177,7 @@ class RealityGapTester:
                     base_pnl = -self.sl_pips
                 else:
                     base_pnl = 0
+                    hold_trades += 1
             else:  # SHORT
                 if label == 0:
                     base_pnl = self.tp_pips
@@ -179,73 +185,91 @@ class RealityGapTester:
                     base_pnl = -self.sl_pips
                 else:
                     base_pnl = 0
-            
+                    hold_trades += 1
+
             # Apply friction costs
             spread_cost = friction["spread"]
             slippage_cost = np.random.uniform(0, friction["slippage"]) if friction["slippage"] > 0 else 0
-            
-            # Position sizing
-            risk_amount = capital * self.risk_per_trade
+
+            # Position sizing with overflow protection
+            risk_amount = min(capital * self.risk_per_trade, 1e12)  # Cap at $1T
             lot_size = risk_amount / (self.sl_pips * self.pip_value)
-            
+            lot_size = min(lot_size, 1e9)  # Cap lot size to prevent overflow
+
             # Calculate costs
             commission_cost = friction["commission"] * lot_size
-            
+
             # Swap cost (simplified: apply to any trade held overnight)
-            swap_cost = 0
+            swap_cost = 0.0
             if friction["swap"] > 0 and time is not None:
                 # Assume 10% of trades are held overnight
                 if np.random.random() < 0.10:
                     swap_cost = friction["swap"] * lot_size
-            
+
             # Weekend gap impact
-            gap_impact = 0
+            gap_impact = 0.0
             if friction.get("weekend_gaps", False) and time is not None:
                 # Check if trade would be held over weekend
                 if isinstance(time, pd.Timestamp) and time.dayofweek == 4:  # Friday
                     if np.random.random() < 0.05:  # 5% of Friday trades affected
                         gap_impact = np.random.uniform(-10, 10)  # Random gap impact
-            
+
             # Latency impact (can cause missed entries or worse fills)
-            latency_impact = 0
+            latency_impact = 0.0
             if friction["latency"] > 0:
                 # Higher latency = more slippage
                 latency_slip = friction["latency"] / 1000 * np.random.uniform(0, 0.5)
                 latency_impact = latency_slip
-            
+
             # Total costs in pips
             total_cost = spread_cost + slippage_cost + latency_impact
-            
+
             # Final PnL
             pnl_pips = base_pnl - total_cost + gap_impact
             pnl_dollars = pnl_pips * self.pip_value * lot_size - commission_cost - swap_cost
-            
+
+            # Protect against NaN/Inf
+            if not np.isfinite(pnl_dollars):
+                pnl_dollars = 0.0
+
             # Track
             trades_executed += 1
-            total_costs += (total_cost * self.pip_value * lot_size + commission_cost + swap_cost)
+            trade_costs = total_cost * self.pip_value * lot_size + commission_cost + swap_cost
+            if np.isfinite(trade_costs):
+                total_costs += trade_costs
             total_pnl += pnl_dollars
-            
-            if pnl_dollars > 0:
+
+            # Only count as win/loss if there was actual P&L (not hold trades)
+            if base_pnl > 0:
                 winning_trades += 1
-            else:
+            elif base_pnl < 0:
                 losing_trades += 1
-            
+
             # Update capital
             capital += pnl_dollars
-            
+
+            # Protect against overflow
+            capital = max(min(capital, 1e15), -1e15)
+
             if capital > peak:
                 peak = capital
             drawdown = (peak - capital) / peak if peak > 0 else 0
             max_drawdown = max(max_drawdown, drawdown)
-            
+
             # Check for ruin
             if capital <= 0:
                 break
-        
+
         total_trades = trades_executed + trades_skipped
         total_return = (capital - self.initial_capital) / self.initial_capital
-        win_rate = winning_trades / trades_executed if trades_executed > 0 else 0
-        
+        # Win rate based on trades that actually hit TP or SL (not hold trades)
+        decisive_trades = winning_trades + losing_trades
+        win_rate = winning_trades / decisive_trades if decisive_trades > 0 else 0
+
+        # Ensure finite values for output
+        total_return = total_return if np.isfinite(total_return) else 0.0
+        total_costs = total_costs if np.isfinite(total_costs) else 0.0
+
         return {
             "level": level,
             "level_name": friction["name"],
@@ -253,6 +277,8 @@ class RealityGapTester:
             "total_signals": len(signals_df),
             "trades_executed": trades_executed,
             "trades_skipped": trades_skipped,
+            "hold_trades": hold_trades,
+            "decisive_trades": decisive_trades,
             "fill_rate_actual": trades_executed / len(signals_df) if len(signals_df) > 0 else 0,
             "winning_trades": winning_trades,
             "losing_trades": losing_trades,
@@ -277,8 +303,16 @@ class RealityGapTester:
         signals_df = self.generate_signals(df, model)
         
         print(f"\n📊 Generated {len(signals_df):,} trading signals")
+
+        # Show label distribution in signals
+        if len(signals_df) > 0:
+            label_counts = signals_df["label"].value_counts().sort_index()
+            print("\n📋 Signal label distribution:")
+            for label, count in label_counts.items():
+                label_name = {0: "SHORT (SL for LONG)", 1: "HOLD", 2: "LONG (TP for LONG)"}
+                print(f"   Label {label} ({label_name.get(label, 'Unknown')}): {count:,} ({count/len(signals_df)*100:.1f}%)")
         print()
-        
+
         # Run simulations for each friction level
         level_results = []
         
@@ -319,6 +353,8 @@ class RealityGapTester:
                     "win_rate_mean": float(np.mean(win_rates)),
                     "profitable_simulations": sum(1 for r in returns if r > 0) / n_sims,
                     "total_costs_mean": float(np.mean([r["total_costs"] for r in sim_results])),
+                    "hold_trades": int(np.mean([r["hold_trades"] for r in sim_results])),
+                    "decisive_trades": int(np.mean([r["decisive_trades"] for r in sim_results])),
                 }
             else:
                 result = sim_results[0]
@@ -336,15 +372,19 @@ class RealityGapTester:
                     "win_rate_mean": result["win_rate"],
                     "profitable_simulations": 1 if result["total_return"] > 0 else 0,
                     "total_costs_mean": result["total_costs"],
+                    "hold_trades": result["hold_trades"],
+                    "decisive_trades": result["decisive_trades"],
                 }
             
             level_results.append(aggregated)
             
-            print(f"   Return: {aggregated['return_mean']*100:+.1f}% "
-                  f"(±{aggregated['return_std']*100:.1f}%)" if n_sims > 1 else 
-                  f"   Return: {aggregated['return_mean']*100:+.1f}%")
+            if n_sims > 1:
+                print(f"   Return: {aggregated['return_mean']*100:+.1f}% (±{aggregated['return_std']*100:.1f}%)")
+            else:
+                print(f"   Return: {aggregated['return_mean']*100:+.1f}%")
             print(f"   Max DD: {aggregated['drawdown_mean']*100:.1f}%")
-            print(f"   Win Rate: {aggregated['win_rate_mean']*100:.1f}%")
+            print(f"   Win Rate: {aggregated['win_rate_mean']*100:.1f}% (of {aggregated['decisive_trades']:,} decisive trades)")
+            print(f"   Hold Trades: {aggregated['hold_trades']:,}")
             print(f"   Avg Costs: ${aggregated['total_costs_mean']:,.2f}")
             if n_sims > 1:
                 print(f"   Profitable Sims: {aggregated['profitable_simulations']*100:.0f}%")
