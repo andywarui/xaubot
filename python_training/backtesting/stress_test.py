@@ -168,31 +168,34 @@ class StressTester:
         """Simulate trading during a stress event."""
         if len(df_event) == 0:
             return None
-        
+
         X = df_event[self.feature_cols].values
         proba = model.predict(X)
-        
+
         # Apply thresholds and generate trades
         short_thresh = self.thresholds.get("SHORT", 0.48)
         long_thresh = self.thresholds.get("LONG", 0.40)
-        
+
         capital = self.initial_capital
         peak = capital
         max_drawdown = 0
         equity_curve = [capital]
         trades = []
-        
+
+        # Cap maximum capital to prevent overflow (1 billion max)
+        MAX_CAPITAL = 1e9
+
         for i in range(len(df_event)):
             p = proba[i]
             label = df_event["label"].iloc[i]
-            
+
             if p[0] >= short_thresh and p[0] >= p[2]:
                 direction = -1  # SHORT
             elif p[2] >= long_thresh and p[2] > p[0]:
                 direction = 1  # LONG
             else:
                 continue  # HOLD
-            
+
             # Calculate PnL
             if direction == 1:
                 if label == 2:
@@ -208,26 +211,36 @@ class StressTester:
                     pnl_pips = -(self.sl_pips + self.spread_pips)
                 else:
                     pnl_pips = -self.spread_pips
-            
-            # Position sizing
-            risk_amount = capital * self.risk_per_trade
+
+            # Position sizing with overflow protection
+            risk_amount = min(capital * self.risk_per_trade, MAX_CAPITAL * self.risk_per_trade)
             lot_size = risk_amount / (self.sl_pips * self.pip_value)
+            lot_size = min(lot_size, 1e6)  # Cap lot size
             dollar_pnl = pnl_pips * self.pip_value * lot_size
-            
+
+            # Protect against overflow
+            if not np.isfinite(dollar_pnl):
+                dollar_pnl = 0
+
             capital += dollar_pnl
+            capital = min(capital, MAX_CAPITAL)  # Cap capital growth
             equity_curve.append(capital)
-            
+
             if capital > peak:
                 peak = capital
             drawdown = (peak - capital) / peak if peak > 0 else 0
             max_drawdown = max(max_drawdown, drawdown)
-            
+
             trades.append({
                 "direction": direction,
                 "pnl_pips": pnl_pips,
                 "pnl_dollar": dollar_pnl,
                 "is_winner": pnl_pips > 0
             })
+
+            # Stop if account blown
+            if capital <= 0:
+                break
         
         if len(trades) == 0:
             return None

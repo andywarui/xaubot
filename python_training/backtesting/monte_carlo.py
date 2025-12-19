@@ -134,12 +134,12 @@ class MonteCarloSimulator:
         
         return trades_df
     
-    def simulate_equity_curve(self, trades_df: pd.DataFrame, 
+    def simulate_equity_curve(self, trades_df: pd.DataFrame,
                                shuffle: bool = False,
                                bootstrap: bool = False,
                                noise: float = 0.0) -> Dict:
         """Simulate single equity curve path."""
-        
+
         if bootstrap:
             # Sample with replacement
             trades = trades_df.sample(n=len(trades_df), replace=True)
@@ -149,35 +149,49 @@ class MonteCarloSimulator:
         else:
             # Original order
             trades = trades_df
-        
+
         pnl_pips = trades["pnl_pips"].values.copy()
-        
+
         # Add noise if specified
         if noise > 0:
             noise_factor = 1 + np.random.uniform(-noise, noise, len(pnl_pips))
             pnl_pips = pnl_pips * noise_factor
-        
-        # Calculate equity curve
+
+        # Calculate equity curve with overflow protection
         capital = self.initial_capital
         equity_curve = [capital]
         peak = capital
         max_drawdown = 0
-        
+
+        # Cap maximum capital to prevent overflow (1 billion max)
+        MAX_CAPITAL = 1e9
+
         for pnl in pnl_pips:
-            # Position size based on risk
-            risk_amount = capital * self.risk_per_trade
+            # Position size based on risk with cap
+            risk_amount = min(capital * self.risk_per_trade, MAX_CAPITAL * self.risk_per_trade)
             lot_size = risk_amount / (self.sl_pips * self.pip_value)
-            
+            lot_size = min(lot_size, 1e6)  # Cap lot size
+
             # Calculate dollar PnL
             dollar_pnl = pnl * self.pip_value * lot_size
+
+            # Protect against overflow
+            if not np.isfinite(dollar_pnl):
+                dollar_pnl = 0
+
             capital += dollar_pnl
+            capital = min(capital, MAX_CAPITAL)  # Cap capital growth
             equity_curve.append(capital)
-            
+
             # Track drawdown
             if capital > peak:
                 peak = capital
             drawdown = (peak - capital) / peak if peak > 0 else 0
             max_drawdown = max(max_drawdown, drawdown)
+
+            # Stop if account blown
+            if capital <= 0:
+                break
         
         # Calculate metrics
         total_return = (capital - self.initial_capital) / self.initial_capital
