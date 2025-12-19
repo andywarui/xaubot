@@ -80,12 +80,16 @@ class RealityGapTester:
         m1_path = self.data_dir / "xauusd_M1.parquet"
         if m1_path.exists():
             m1_df = pd.read_parquet(m1_path)
+            # Convert time column to datetime if needed (with error handling)
+            if m1_df["time"].dtype == "object":
+                m1_df["time"] = pd.to_datetime(m1_df["time"], errors="coerce")
+                m1_df = m1_df.dropna(subset=["time"])
             # Get test portion (last ~20% based on typical train/val/test split)
             test_start = int(len(m1_df) * 0.8)
             if len(m1_df) - test_start >= len(df):
-                df["time"] = pd.to_datetime(m1_df["time"].iloc[test_start:test_start+len(df)].values)
+                df["time"] = m1_df["time"].iloc[test_start:test_start+len(df)].values
             else:
-                df["time"] = pd.to_datetime(m1_df["time"].iloc[-len(df):].values)
+                df["time"] = m1_df["time"].iloc[-len(df):].values
         
         print(f"   Loaded: {len(df):,} rows")
         

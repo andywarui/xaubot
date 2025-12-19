@@ -1,0 +1,147 @@
+{
+  "run_date": "2025-12-19T07:21:38.741132",
+  "total_bars": 6600458,
+  "regime_distribution": {
+    "trend": {
+      "MIXED": 2809090,
+      "TREND_UP": 1587784,
+      "TREND_DOWN": 1572451,
+      "RANGING": 631133
+    },
+    "volatility": {
+      "NORMAL_VOL": 5901100,
+      "HIGH_VOL": 563250,
+      "LOW_VOL": 136108
+    }
+  },
+  "regime_results": {
+    "TREND_UP": {
+      "n_bars": 1587784,
+      "n_trades": 1113109,
+      "trade_frequency": 70.10456082187501,
+      "win_rate": 0.7156262324713932,
+      "avg_trade_pips": 15.02554332055531,
+      "total_pnl_pips": 16725067.5,
+      "profit_factor": 4.2283988895124756,
+      "long_trades": 431446,
+      "short_trades": 681663
+    },
+    "TREND_DOWN": {
+      "n_bars": 1572451,
+      "n_trades": 1098249,
+      "trade_frequency": 69.84313024698385,
+      "win_rate": 0.6855631100051082,
+      "avg_trade_pips": 13.734396753377421,
+      "total_pnl_pips": 15083787.5,
+      "profit_factor": 3.6832389484273285,
+      "long_trades": 536568,
+      "short_trades": 561681
+    },
+    "RANGING": {
+      "n_bars": 631133,
+      "n_trades": 345175,
+      "trade_frequency": 54.691324966370004,
+      "win_rate": 0.7375679003404071,
+      "avg_trade_pips": 16.203729992033026,
+      "total_pnl_pips": 5593122.5,
+      "profit_factor": 4.9720989771696305,
+      "long_trades": 143029,
+      "short_trades": 202146
+    },
+    "MIXED": {
+      "n_bars": 2809090,
+      "n_trades": 1834453,
+      "trade_frequency": 65.30417323759652,
+      "win_rate": 0.7183841722845993,
+      "avg_trade_pips": 15.104375800306686,
+      "total_pnl_pips": 27708267.5,
+      "profit_factor": 4.247422541463336,
+      "long_trades": 758508,
+      "short_trades": 1075945
+    },
+    "VOL_HIGH_VOL": {
+      "n_bars": 563250,
+      "n_trades": 469038,
+      "trade_frequency": 83.27350199733688,
+      "win_rate": 0.668623864164524,
+      "avg_trade_pips": 12.72520563365868,
+      "total_pnl_pips": 5968605.0,
+      "profit_factor": 3.2474949824338113,
+      "long_trades": 224468,
+      "short_trades": 244570
+    },
+    "VOL_NORMAL_VOL": {
+      "n_bars": 5901100,
+      "n_trades": 3871106,
+      "trade_frequency": 65.59973564250733,
+      "win_rate": 0.7155655257179732,
+      "avg_trade_pips": 15.049067372477014,
+      "total_pnl_pips": 58256535.0,
+      "profit_factor": 4.251051520456446,
+      "long_trades": 1624720,
+      "short_trades": 2246386
+    },
+    "VOL_LOW_VOL": {
+      "n_bars": 136108,
+      "n_trades": 50842,
+      "trade_frequency": 37.35415993181885,
+      "win_rate": 0.7529404822784312,
+      "avg_trade_pips": 17.40893355886865,
+      "total_pnl_pips": 885105.0,
+      "profit_factor": 6.2803472087577745,
+      "long_trades": 20363,
+      "short_trades": 30479
+    }
+  },
+  "recommendations": [
+    {
+      "regime": "TREND_UP",
+      "recommendation": "AGGRESSIVE - Increase position size",
+      "icon": "\ud83d\udfe2",
+      "profit_factor": 4.2283988895124756,
+      "win_rate": 0.7156262324713932
+    },
+    {
+      "regime": "TREND_DOWN",
+      "recommendation": "AGGRESSIVE - Increase position size",
+      "icon": "\ud83d\udfe2",
+      "profit_factor": 3.6832389484273285,
+      "win_rate": 0.6855631100051082
+    },
+    {
+      "regime": "RANGING",
+      "recommendation": "AGGRESSIVE - Increase position size",
+      "icon": "\ud83d\udfe2",
+      "profit_factor": 4.9720989771696305,
+      "win_rate": 0.7375679003404071
+    },
+    {
+      "regime": "MIXED",
+      "recommendation": "AGGRESSIVE - Increase position size",
+      "icon": "\ud83d\udfe2",
+      "profit_factor": 4.247422541463336,
+      "win_rate": 0.7183841722845993
+    },
+    {
+      "regime": "VOL_HIGH_VOL",
+      "recommendation": "AGGRESSIVE - Increase position size",
+      "icon": "\ud83d\udfe2",
+      "profit_factor": 3.2474949824338113,
+      "win_rate": 0.668623864164524
+    },
+    {
+      "regime": "VOL_NORMAL_VOL",
+      "recommendation": "AGGRESSIVE - Increase position size",
+      "icon": "\ud83d\udfe2",
+      "profit_factor": 4.251051520456446,
+      "win_rate": 0.7155655257179732
+    },
+    {
+      "regime": "VOL_LOW_VOL",
+      "recommendation": "AGGRESSIVE - Increase position size",
+      "icon": "\ud83d\udfe2",
+      "profit_factor": 6.2803472087577745,
+      "win_rate": 0.7529404822784312
+    }
+  ]
+}
