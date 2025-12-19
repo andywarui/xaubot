@@ -31,8 +31,9 @@ def main():
     print(f"Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     
     backtests = [
+        "walk_forward",
         "monte_carlo",
-        "stress_test", 
+        "stress_test",
         "regime_analysis",
         "reality_gap"
     ]
