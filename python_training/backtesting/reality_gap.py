@@ -191,10 +191,11 @@ class RealityGapTester:
             spread_cost = friction["spread"]
             slippage_cost = np.random.uniform(0, friction["slippage"]) if friction["slippage"] > 0 else 0
 
-            # Position sizing with overflow protection
-            risk_amount = min(capital * self.risk_per_trade, 1e12)  # Cap at $1T
+            # Position sizing with overflow protection (match monte_carlo/stress_test caps)
+            MAX_CAPITAL = 1e9  # $1B max
+            risk_amount = min(capital * self.risk_per_trade, MAX_CAPITAL * self.risk_per_trade)
             lot_size = risk_amount / (self.sl_pips * self.pip_value)
-            lot_size = min(lot_size, 1e9)  # Cap lot size to prevent overflow
+            lot_size = min(lot_size, 1e6)  # Cap lot size to prevent overflow
 
             # Calculate costs
             commission_cost = friction["commission"] * lot_size
@@ -248,8 +249,8 @@ class RealityGapTester:
             # Update capital
             capital += pnl_dollars
 
-            # Protect against overflow
-            capital = max(min(capital, 1e15), -1e15)
+            # Protect against overflow (cap at $1B to match other backtests)
+            capital = max(min(capital, 1e9), -1e9)
 
             if capital > peak:
                 peak = capital
