@@ -36,7 +36,7 @@ class MonteCarloSimulator:
         
         # Trading parameters
         self.initial_capital = 10000.0
-        self.risk_per_trade = 0.02  # 2% risk
+        self.risk_per_trade = 0.01  # 1% risk (reduced from 2% for better drawdown control)
         self.tp_pips = 30
         self.sl_pips = 20
         self.spread_pips = 2.5
