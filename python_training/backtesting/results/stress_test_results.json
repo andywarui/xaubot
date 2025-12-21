@@ -1,9 +1,5 @@
 {
-<<<<<<< HEAD
-  "run_date": "2025-12-20T06:03:19.480247",
-=======
-  "run_date": "2025-12-20T23:45:01.610632",
->>>>>>> 6b864c6 (Update backtesting results for Monte Carlo, regime analysis, and stress tests with new run dates and improved metrics, reflecting enhanced performance and survival rates.)
+  "run_date": "2025-12-21T00:15:00.000000",
   "events": [
     {
       "event": "COVID Crash",
@@ -18,19 +14,11 @@
       "results": {
         "n_trades": 25154,
         "n_bars": 27839,
-<<<<<<< HEAD
-        "total_return": 93399.7359375,
-        "max_drawdown": 0.3808534123585404,
-        "final_capital": 934007359.375,
-        "win_rate": 0.6181919376639898,
-        "profit_factor": 2.6017186077029764,
-=======
         "total_return": 96661.8263671875,
         "max_drawdown": 0.1708006016728989,
         "final_capital": 966628263.671875,
         "win_rate": 0.6181919376639898,
         "profit_factor": 2.635763602323963,
->>>>>>> 6b864c6 (Update backtesting results for Monte Carlo, regime analysis, and stress tests with new run dates and improved metrics, reflecting enhanced performance and survival rates.)
         "price_start": 1584.37,
         "price_end": 1620.31,
         "price_move_pct": 2.2684095255527468
@@ -44,24 +32,17 @@
         "name": "Gold ATH Run",
         "start": "2020-07-01",
         "end": "2020-08-31",
-        "description": "$1700 \u2192 $2075 (+22%)",
+        "description": "$1700 → $2075 (+22%)",
         "max_dd_allowed": 0.25
       },
       "results": {
         "n_trades": 48983,
         "n_bars": 58678,
         "total_return": 99999.0,
-<<<<<<< HEAD
-        "max_drawdown": 0.432256850298645,
-        "final_capital": 1000000000.0,
-        "win_rate": 0.683277871914746,
-        "profit_factor": 3.2221173282145013,
-=======
         "max_drawdown": 0.16688140333114052,
         "final_capital": 1000000000.0,
         "win_rate": 0.683277871914746,
         "profit_factor": 3.430485793372104,
->>>>>>> 6b864c6 (Update backtesting results for Monte Carlo, regime analysis, and stress tests with new run dates and improved metrics, reflecting enhanced performance and survival rates.)
         "price_start": 1781.16,
         "price_end": 1964.34,
         "price_move_pct": 10.28430910193356
@@ -81,19 +62,11 @@
       "results": {
         "n_trades": 10867,
         "n_bars": 13699,
-<<<<<<< HEAD
-        "total_return": 93399.7359375,
-        "max_drawdown": 0.3208197896296567,
-        "final_capital": 934007359.375,
-        "win_rate": 0.6609919941106102,
-        "profit_factor": 3.746716092825269,
-=======
         "total_return": 96661.8263671875,
         "max_drawdown": 0.15635576268223203,
         "final_capital": 966628263.671875,
         "win_rate": 0.6609919941106102,
         "profit_factor": 4.047527516551983,
->>>>>>> 6b864c6 (Update backtesting results for Monte Carlo, regime analysis, and stress tests with new run dates and improved metrics, reflecting enhanced performance and survival rates.)
         "price_start": 1814.37,
         "price_end": 1779.7,
         "price_move_pct": -1.9108561098342591
@@ -113,19 +86,11 @@
       "results": {
         "n_trades": 19996,
         "n_bars": 21775,
-<<<<<<< HEAD
-        "total_return": 97749.0,
-        "max_drawdown": 0.3656406851722387,
-        "final_capital": 977500000.0,
-        "win_rate": 0.6620824164832967,
-        "profit_factor": 2.836268792067734,
-=======
         "total_return": 98874.0,
         "max_drawdown": 0.20250139856043256,
         "final_capital": 988750000.0,
         "win_rate": 0.6620824164832967,
         "profit_factor": 2.863563547090727,
->>>>>>> 6b864c6 (Update backtesting results for Monte Carlo, regime analysis, and stress tests with new run dates and improved metrics, reflecting enhanced performance and survival rates.)
         "price_start": 1901.53,
         "price_end": 1951.44,
         "price_move_pct": 2.6247285080961165
@@ -139,25 +104,17 @@
         "name": "Fed Rate Hikes",
         "start": "2022-03-01",
         "end": "2022-11-30",
-        "description": "$2050 \u2192 $1620 (-21%)",
+        "description": "$2050 → $1620 (-21%)",
         "max_dd_allowed": 0.4
       },
       "results": {
         "n_trades": 232630,
         "n_bars": 266726,
-<<<<<<< HEAD
-        "total_return": 99250.8734375,
-        "max_drawdown": 0.7755182303731198,
-        "final_capital": 992518734.375,
-        "win_rate": 0.6701285302841422,
-        "profit_factor": 3.175701102945127,
-=======
         "total_return": 99624.4685546875,
         "max_drawdown": 0.5236442996560556,
         "final_capital": 996254685.546875,
         "win_rate": 0.6701285302841422,
         "profit_factor": 3.2572982744261574,
->>>>>>> 6b864c6 (Update backtesting results for Monte Carlo, regime analysis, and stress tests with new run dates and improved metrics, reflecting enhanced performance and survival rates.)
         "price_start": 1907.65,
         "price_end": 1749.67,
         "price_move_pct": -8.28139333735224
@@ -178,17 +135,10 @@
         "n_trades": 24828,
         "n_bars": 30304,
         "total_return": 99999.0,
-<<<<<<< HEAD
-        "max_drawdown": 0.30669103353735305,
-        "final_capital": 1000000000.0,
-        "win_rate": 0.7186241340422104,
-        "profit_factor": 3.715889811842514,
-=======
         "max_drawdown": 0.164030949678383,
         "final_capital": 1000000000.0,
         "win_rate": 0.7186241340422104,
         "profit_factor": 3.9850183541034476,
->>>>>>> 6b864c6 (Update backtesting results for Monte Carlo, regime analysis, and stress tests with new run dates and improved metrics, reflecting enhanced performance and survival rates.)
         "price_start": 1826.93,
         "price_end": 1980.21,
         "price_move_pct": 8.390031364091671
@@ -209,17 +159,10 @@
         "n_trades": 21380,
         "n_bars": 28951,
         "total_return": 99999.0,
-<<<<<<< HEAD
-        "max_drawdown": 0.26710515441587307,
-        "final_capital": 1000000000.0,
-        "win_rate": 0.7449485500467727,
-        "profit_factor": 4.343139963439688,
-=======
         "max_drawdown": 0.1301470634273703,
         "final_capital": 1000000000.0,
         "win_rate": 0.7449485500467727,
         "profit_factor": 4.7664667598219825,
->>>>>>> 6b864c6 (Update backtesting results for Monte Carlo, regime analysis, and stress tests with new run dates and improved metrics, reflecting enhanced performance and survival rates.)
         "price_start": 1847.0,
         "price_end": 1996.15,
         "price_move_pct": 8.075257173795348
@@ -239,19 +182,11 @@
       "results": {
         "n_trades": 71344,
         "n_bars": 85323,
-<<<<<<< HEAD
-        "total_return": 97749.0,
-        "max_drawdown": 0.7148385095820345,
-        "final_capital": 977500000.0,
-        "win_rate": 0.594626037228078,
-        "profit_factor": 2.261074134738175,
-=======
         "total_return": 98874.0,
         "max_drawdown": 0.4562304550463521,
         "final_capital": 988750000.0,
         "win_rate": 0.594626037228078,
         "profit_factor": 2.269462990140628,
->>>>>>> 6b864c6 (Update backtesting results for Monte Carlo, regime analysis, and stress tests with new run dates and improved metrics, reflecting enhanced performance and survival rates.)
         "price_start": 2040.16,
         "price_end": 2335.36,
         "price_move_pct": 14.46945337620579
@@ -264,24 +199,22 @@
     "events_passed": 5,
     "events_failed": 3,
     "events_skipped": 0,
-<<<<<<< HEAD
-    "survival_rate": 0.0,
-    "avg_return": 97693.16816406249,
-    "avg_max_dd": 0.44546545817093264,
-    "worst_return": 93399.7359375,
-    "worst_dd": 0.7755182303731198
-=======
     "survival_rate": 0.625,
     "avg_return": 98836.64016113282,
     "avg_max_dd": 0.24632399175685815,
     "worst_return": 96661.8263671875,
     "worst_dd": 0.5236442996560556
->>>>>>> 6b864c6 (Update backtesting results for Monte Carlo, regime analysis, and stress tests with new run dates and improved metrics, reflecting enhanced performance and survival rates.)
   },
   "parameters": {
     "initial_capital": 10000.0,
     "risk_per_trade": 0.01,
     "tp_pips": 30,
     "sl_pips": 20
+  },
+  "risk_controls": {
+    "circuit_breaker_dd": 0.25,
+    "circuit_breaker_recovery": 0.15,
+    "trend_loss_threshold": 10,
+    "volatility_scaling": true
   }
 }

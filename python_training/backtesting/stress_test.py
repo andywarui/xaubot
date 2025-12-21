@@ -186,6 +186,18 @@ class StressTester:
         # Cap maximum capital to prevent overflow (1 billion max)
         MAX_CAPITAL = 1e9
 
+        # Circuit breaker parameters
+        CIRCUIT_BREAKER_DD = 0.25  # Pause trading at 25% drawdown
+        CIRCUIT_BREAKER_RECOVERY = 0.15  # Resume when DD drops to 15%
+        circuit_breaker_active = False
+        trades_since_pause = 0
+        COOLDOWN_TRADES = 50  # Wait 50 potential trades after circuit breaker triggers
+
+        # Extended trend detection (for reducing position size in prolonged trends)
+        consecutive_losses = 0
+        TREND_LOSS_THRESHOLD = 10  # Reduce size after 10 consecutive losses
+        trend_scale = 1.0
+
         # Volatility-based position scaling
         # Get ATR values if available for volatility scaling
         atr_values = None
@@ -197,6 +209,21 @@ class StressTester:
         for i in range(len(df_event)):
             p = proba[i]
             label = df_event["label"].iloc[i]
+
+            # Check circuit breaker status
+            current_dd = (peak - capital) / peak if peak > 0 else 0
+            if current_dd >= CIRCUIT_BREAKER_DD and not circuit_breaker_active:
+                circuit_breaker_active = True
+                trades_since_pause = 0
+            elif circuit_breaker_active:
+                trades_since_pause += 1
+                # Resume trading if DD recovers and cooldown complete
+                if current_dd <= CIRCUIT_BREAKER_RECOVERY and trades_since_pause >= COOLDOWN_TRADES:
+                    circuit_breaker_active = False
+                    consecutive_losses = 0  # Reset loss counter
+                    trend_scale = 1.0
+                else:
+                    continue  # Skip trading while circuit breaker active
 
             if p[0] >= short_thresh and p[0] >= p[2]:
                 direction = -1  # SHORT
@@ -230,8 +257,16 @@ class StressTester:
                     # Cap the scaling between 0.5 (high vol) and 1.0 (normal vol)
                     vol_scale = min(1.0, max(0.5, baseline_atr / current_atr))
 
-            # Position sizing with overflow protection and volatility scaling
-            risk_amount = min(capital * self.risk_per_trade * vol_scale, MAX_CAPITAL * self.risk_per_trade)
+            # Trend-based position reduction (reduce size during losing streaks)
+            if consecutive_losses >= TREND_LOSS_THRESHOLD:
+                # Reduce position by 50% during extended adverse trends
+                trend_scale = 0.5
+            else:
+                trend_scale = 1.0
+
+            # Position sizing with overflow protection, volatility scaling, and trend scaling
+            combined_scale = vol_scale * trend_scale
+            risk_amount = min(capital * self.risk_per_trade * combined_scale, MAX_CAPITAL * self.risk_per_trade)
             lot_size = risk_amount / (self.sl_pips * self.pip_value)
             lot_size = min(lot_size, 1e6)  # Cap lot size
             dollar_pnl = pnl_pips * self.pip_value * lot_size
@@ -255,6 +290,12 @@ class StressTester:
                 "pnl_dollar": dollar_pnl,
                 "is_winner": pnl_pips > 0
             })
+
+            # Update consecutive loss counter for trend detection
+            if pnl_pips < 0:
+                consecutive_losses += 1
+            else:
+                consecutive_losses = 0  # Reset on win
 
             # Stop if account blown
             if capital <= 0:

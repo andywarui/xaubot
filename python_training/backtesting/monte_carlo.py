@@ -166,14 +166,48 @@ class MonteCarloSimulator:
         # Cap maximum capital to prevent overflow (1 billion max)
         MAX_CAPITAL = 1e9
 
+        # Circuit breaker parameters
+        CIRCUIT_BREAKER_DD = 0.25  # Pause trading at 25% drawdown
+        CIRCUIT_BREAKER_RECOVERY = 0.15  # Resume when DD drops to 15%
+        circuit_breaker_active = False
+        bars_since_pause = 0
+        COOLDOWN_BARS = 50
+
+        # Consecutive loss tracking
+        consecutive_losses = 0
+        TREND_LOSS_THRESHOLD = 10
+
         for pnl in pnl_pips:
-            # Position size based on risk with cap
-            risk_amount = min(capital * self.risk_per_trade, MAX_CAPITAL * self.risk_per_trade)
+            # Check circuit breaker
+            current_dd = (peak - capital) / peak if peak > 0 else 0
+            if current_dd >= CIRCUIT_BREAKER_DD and not circuit_breaker_active:
+                circuit_breaker_active = True
+                bars_since_pause = 0
+            elif circuit_breaker_active:
+                bars_since_pause += 1
+                if current_dd <= CIRCUIT_BREAKER_RECOVERY and bars_since_pause >= COOLDOWN_BARS:
+                    circuit_breaker_active = False
+                    consecutive_losses = 0
+                else:
+                    equity_curve.append(capital)
+                    continue  # Skip trading
+
+            # Trend-based scaling
+            trend_scale = 0.5 if consecutive_losses >= TREND_LOSS_THRESHOLD else 1.0
+
+            # Position size based on risk with cap and trend scaling
+            risk_amount = min(capital * self.risk_per_trade * trend_scale, MAX_CAPITAL * self.risk_per_trade)
             lot_size = risk_amount / (self.sl_pips * self.pip_value)
             lot_size = min(lot_size, 1e6)  # Cap lot size
 
             # Calculate dollar PnL
             dollar_pnl = pnl * self.pip_value * lot_size
+
+            # Track consecutive losses
+            if pnl < 0:
+                consecutive_losses += 1
+            else:
+                consecutive_losses = 0
 
             # Protect against overflow
             if not np.isfinite(dollar_pnl):
