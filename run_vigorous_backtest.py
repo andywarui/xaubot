@@ -44,7 +44,7 @@ def run_all_tests():
     try:
         from python_training.backtesting.walk_forward import WalkForwardOptimizer
         wfo = WalkForwardOptimizer(project_root)
-        wfo_results = wfo.run_walk_forward()
+        wfo_results = wfo.run_wfo()  # Correct method name
         results["walk_forward"] = {
             "status": "PASSED" if wfo_results else "COMPLETED",
             "folds": len(wfo.folds),
@@ -66,7 +66,7 @@ def run_all_tests():
     try:
         from python_training.backtesting.monte_carlo import MonteCarloSimulator
         mc = MonteCarloSimulator(project_root)
-        mc_results = mc.run_full_monte_carlo()
+        mc_results = mc.run_full_simulation()  # Correct method name
 
         shuffle_ror = mc_results.get("methods", {}).get("shuffle", {}).get("risk_of_ruin", 1.0)
         results["monte_carlo"] = {
