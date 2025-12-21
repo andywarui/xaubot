@@ -89,17 +89,24 @@ print(f"   ✓ Added 21 technical indicators (Total: {feature_count})")
 # ==================== MARKET STRUCTURE (10 features) ====================
 print("2️⃣ Market Structure...")
 
-# Swing highs/lows
-df['swing_high_dist'] = df['high'].rolling(5, center=True).max().fillna(method='ffill') - df['close']
-df['swing_low_dist'] = df['close'] - df['low'].rolling(5, center=True).min().fillna(method='ffill')
+# Swing highs/lows (using PAST bars only - no center=True to avoid look-ahead)
+df['swing_high_dist'] = df['high'].rolling(5).max() - df['close']
+df['swing_low_dist'] = df['close'] - df['low'].rolling(5).min()
 
-# Order blocks (simplified)
-df['bullish_ob'] = ((df['close'] > df['open']) & (df['close'].shift(-1) < df['open'].shift(-1))).astype(int)
-df['bearish_ob'] = ((df['close'] < df['open']) & (df['close'].shift(-1) > df['open'].shift(-1))).astype(int)
+# Order blocks (using PAST bars only - no look-ahead bias)
+# An OB is identified by a strong momentum candle followed by consolidation
+# We detect the momentum candle itself as a potential OB zone
+df['bullish_ob'] = ((df['close'] > df['open']) & 
+                   ((df['close'] - df['open']) > df['atr_14'] * 0.5) &
+                   (df['close'].shift(1) < df['open'].shift(1))).astype(int)
+df['bearish_ob'] = ((df['close'] < df['open']) & 
+                   ((df['open'] - df['close']) > df['atr_14'] * 0.5) &
+                   (df['close'].shift(1) > df['open'].shift(1))).astype(int)
 
-# Fair Value Gaps
-df['fvg_up'] = df['low'].shift(-1) - df['high'].shift(1)
-df['fvg_down'] = df['low'].shift(1) - df['high'].shift(-1)
+# Fair Value Gaps (using PAST bars only - no look-ahead bias)
+# FVG is detected as gap between bar[i-2].high and bar[i].low (for bullish)
+df['fvg_up'] = (df['low'] - df['high'].shift(2)).clip(lower=0)  # Gap above
+df['fvg_down'] = (df['low'].shift(2) - df['high']).clip(lower=0)  # Gap below
 df['fvg_size'] = df[['fvg_up', 'fvg_down']].max(axis=1)
 
 # Liquidity sweeps
@@ -113,6 +120,7 @@ df['premium_discount'] = (df['close'] - session_low) / (session_high - session_l
 
 feature_count += 10
 print(f"   ✓ Added 10 market structure features (Total: {feature_count})")
+print(f"   ⚠️  Note: Order blocks & FVGs use PAST bars only (no look-ahead bias)")
 
 # ==================== ORDERFLOW (8 features) ====================
 print("3️⃣ Orderflow Metrics...")
