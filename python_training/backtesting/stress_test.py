@@ -50,8 +50,8 @@ class StressTester:
         self.spread_pips = 2.5
         self.pip_value = 10.0
         
-        # Stress event definitions (thresholds adjusted to be realistic for volatile periods)
-        # With 1% risk per trade, expected max DD is roughly half of 2% risk
+        # Stress event definitions - 14 events for comprehensive validation
+        # Fed Rate Hikes split into 3 periods for granular analysis
         self.stress_events = [
             {
                 "name": "COVID Crash",
@@ -68,11 +68,25 @@ class StressTester:
                 "max_dd_allowed": 0.25,  # Strong trend period
             },
             {
+                "name": "US Election 2020",
+                "start": "2020-10-15",
+                "end": "2020-11-15",
+                "description": "Election volatility",
+                "max_dd_allowed": 0.20,  # Political uncertainty
+            },
+            {
                 "name": "Flash Crash",
                 "start": "2021-08-01",
                 "end": "2021-08-15",
                 "description": "-$100 in minutes",
                 "max_dd_allowed": 0.20,  # Short duration flash event
+            },
+            {
+                "name": "Omicron Variant",
+                "start": "2021-11-25",
+                "end": "2021-12-20",
+                "description": "COVID variant spike",
+                "max_dd_allowed": 0.18,  # Health crisis
             },
             {
                 "name": "Ukraine Invasion",
@@ -82,18 +96,46 @@ class StressTester:
                 "max_dd_allowed": 0.20,  # Geopolitical shock
             },
             {
-                "name": "Fed Rate Hikes",
+                "name": "Fed Hikes Q1",
                 "start": "2022-03-01",
+                "end": "2022-06-15",
+                "description": "Initial rate hikes",
+                "max_dd_allowed": 0.30,  # First aggressive hikes
+            },
+            {
+                "name": "Fed Hikes Q2",
+                "start": "2022-06-16",
+                "end": "2022-09-21",
+                "description": "Peak hawkishness 75bp hikes",
+                "max_dd_allowed": 0.30,  # Most aggressive period
+            },
+            {
+                "name": "Fed Hikes Q3",
+                "start": "2022-09-22",
                 "end": "2022-11-30",
-                "description": "$2050 → $1620 (-21%)",
-                "max_dd_allowed": 0.40,  # Extended 9-month period - higher threshold
+                "description": "Continued tightening",
+                "max_dd_allowed": 0.30,  # Final aggressive period
+            },
+            {
+                "name": "Japan Intervention",
+                "start": "2022-10-01",
+                "end": "2022-10-31",
+                "description": "BOJ currency intervention",
+                "max_dd_allowed": 0.20,  # Central bank action
             },
             {
                 "name": "Banking Crisis",
                 "start": "2023-03-01",
                 "end": "2023-03-31",
-                "description": "+$200 in 2 weeks",
+                "description": "SVB collapse +$200",
                 "max_dd_allowed": 0.20,  # Financial crisis
+            },
+            {
+                "name": "Debt Ceiling",
+                "start": "2023-05-01",
+                "end": "2023-06-15",
+                "description": "US default fears",
+                "max_dd_allowed": 0.18,  # Political/fiscal crisis
             },
             {
                 "name": "Israel-Hamas",
@@ -107,7 +149,7 @@ class StressTester:
                 "start": "2024-02-01",
                 "end": "2024-04-30",
                 "description": "New highs >$2200",
-                "max_dd_allowed": 0.40,  # Extended 3-month rally - higher threshold
+                "max_dd_allowed": 0.35,  # Extended 3-month rally
             },
         ]
     
