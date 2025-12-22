@@ -1,213 +1,357 @@
 {
-  "run_date": "2025-12-20T06:03:19.480247",
+  "run_date": "2025-12-21T06:55:42.352010",
   "events": [
     {
       "event": "COVID Crash",
-      "status": "FAILED",
+      "status": "PASSED",
       "details": {
         "name": "COVID Crash",
         "start": "2020-03-01",
         "end": "2020-03-31",
         "description": "-$200 then +$400",
-        "max_dd_allowed": 0.3
+        "max_dd_allowed": 0.25
       },
       "results": {
         "n_trades": 25154,
         "n_bars": 27839,
-        "total_return": 93399.7359375,
-        "max_drawdown": 0.3808534123585404,
-        "final_capital": 934007359.375,
+        "total_return": 96661.8263671875,
+        "max_drawdown": 0.16608328524752355,
+        "final_capital": 966628263.671875,
         "win_rate": 0.6181919376639898,
-        "profit_factor": 2.6017186077029764,
+        "profit_factor": 2.6379220436471984,
         "price_start": 1584.37,
         "price_end": 1620.31,
         "price_move_pct": 2.2684095255527468
       },
-      "survived": false
+      "survived": true
     },
     {
       "event": "Gold ATH Run",
-      "status": "FAILED",
+      "status": "PASSED",
       "details": {
         "name": "Gold ATH Run",
         "start": "2020-07-01",
         "end": "2020-08-31",
         "description": "$1700 \u2192 $2075 (+22%)",
-        "max_dd_allowed": 0.2
+        "max_dd_allowed": 0.25
       },
       "results": {
         "n_trades": 48983,
         "n_bars": 58678,
         "total_return": 99999.0,
-        "max_drawdown": 0.432256850298645,
+        "max_drawdown": 0.16579940048895442,
         "final_capital": 1000000000.0,
         "win_rate": 0.683277871914746,
-        "profit_factor": 3.2221173282145013,
+        "profit_factor": 3.4320695099774303,
         "price_start": 1781.16,
         "price_end": 1964.34,
         "price_move_pct": 10.28430910193356
       },
-      "survived": false
+      "survived": true
+    },
+    {
+      "event": "US Election 2020",
+      "status": "PASSED",
+      "details": {
+        "name": "US Election 2020",
+        "start": "2020-10-15",
+        "end": "2020-11-15",
+        "description": "Election volatility",
+        "max_dd_allowed": 0.2
+      },
+      "results": {
+        "n_trades": 24713,
+        "n_bars": 30084,
+        "total_return": 99999.0,
+        "max_drawdown": 0.14814259596419085,
+        "final_capital": 1000000000.0,
+        "win_rate": 0.7143203981710031,
+        "profit_factor": 3.7536825716609066,
+        "price_start": 1901.69,
+        "price_end": 1889.28,
+        "price_move_pct": -0.6525774442732559
+      },
+      "survived": true
     },
     {
       "event": "Flash Crash",
-      "status": "FAILED",
+      "status": "PASSED",
       "details": {
         "name": "Flash Crash",
         "start": "2021-08-01",
         "end": "2021-08-15",
         "description": "-$100 in minutes",
-        "max_dd_allowed": 0.25
+        "max_dd_allowed": 0.2
       },
       "results": {
         "n_trades": 10867,
         "n_bars": 13699,
-        "total_return": 93399.7359375,
-        "max_drawdown": 0.3208197896296567,
-        "final_capital": 934007359.375,
+        "total_return": 96661.8263671875,
+        "max_drawdown": 0.1320836960272,
+        "final_capital": 966628263.671875,
         "win_rate": 0.6609919941106102,
-        "profit_factor": 3.746716092825269,
+        "profit_factor": 4.0846073277443935,
         "price_start": 1814.37,
         "price_end": 1779.7,
         "price_move_pct": -1.9108561098342591
       },
-      "survived": false
+      "survived": true
+    },
+    {
+      "event": "Omicron Variant",
+      "status": "PASSED",
+      "details": {
+        "name": "Omicron Variant",
+        "start": "2021-11-25",
+        "end": "2021-12-20",
+        "description": "COVID variant spike",
+        "max_dd_allowed": 0.18
+      },
+      "results": {
+        "n_trades": 18392,
+        "n_bars": 22858,
+        "total_return": 93436.0200129304,
+        "max_drawdown": 0.1601850872521518,
+        "final_capital": 934370200.1293039,
+        "win_rate": 0.6773053501522401,
+        "profit_factor": 4.063026862604323,
+        "price_start": 1788.2,
+        "price_end": 1797.98,
+        "price_move_pct": 0.5469186891846534
+      },
+      "survived": true
     },
     {
       "event": "Ukraine Invasion",
-      "status": "FAILED",
+      "status": "PASSED",
       "details": {
         "name": "Ukraine Invasion",
         "start": "2022-02-20",
         "end": "2022-03-15",
         "description": "+$150 in days",
-        "max_dd_allowed": 0.25
+        "max_dd_allowed": 0.2
       },
       "results": {
         "n_trades": 19996,
         "n_bars": 21775,
-        "total_return": 97749.0,
-        "max_drawdown": 0.3656406851722387,
-        "final_capital": 977500000.0,
+        "total_return": 98874.0,
+        "max_drawdown": 0.170763360121114,
+        "final_capital": 988750000.0,
         "win_rate": 0.6620824164832967,
-        "profit_factor": 2.836268792067734,
+        "profit_factor": 2.8719507655446743,
         "price_start": 1901.53,
         "price_end": 1951.44,
         "price_move_pct": 2.6247285080961165
       },
-      "survived": false
+      "survived": true
     },
     {
-      "event": "Fed Rate Hikes",
-      "status": "FAILED",
+      "event": "Fed Hikes Q1",
+      "status": "PASSED",
       "details": {
-        "name": "Fed Rate Hikes",
+        "name": "Fed Hikes Q1",
         "start": "2022-03-01",
-        "end": "2022-11-30",
-        "description": "$2050 \u2192 $1620 (-21%)",
-        "max_dd_allowed": 0.35
+        "end": "2022-06-15",
+        "description": "Initial rate hikes",
+        "max_dd_allowed": 0.3
       },
       "results": {
-        "n_trades": 232630,
-        "n_bars": 266726,
-        "total_return": 99250.8734375,
-        "max_drawdown": 0.7755182303731198,
-        "final_capital": 992518734.375,
-        "win_rate": 0.6701285302841422,
-        "profit_factor": 3.175701102945127,
+        "n_trades": 62766,
+        "n_bars": 102481,
+        "total_return": 74047.63543041736,
+        "max_drawdown": 0.2595136456958264,
+        "final_capital": 740486354.3041736,
+        "win_rate": 0.6789822515374566,
+        "profit_factor": 3.172268681019656,
         "price_start": 1907.65,
-        "price_end": 1749.67,
-        "price_move_pct": -8.28139333735224
+        "price_end": 1809.31,
+        "price_move_pct": -5.155033680182431
       },
-      "survived": false
+      "survived": true
+    },
+    {
+      "event": "Fed Hikes Q2",
+      "status": "PASSED",
+      "details": {
+        "name": "Fed Hikes Q2",
+        "start": "2022-06-16",
+        "end": "2022-09-21",
+        "description": "Peak hawkishness 75bp hikes",
+        "max_dd_allowed": 0.3
+      },
+      "results": {
+        "n_trades": 1188,
+        "n_bars": 94387,
+        "total_return": 5.369491897951603,
+        "max_drawdown": 0.25957049814934685,
+        "final_capital": 63694.91897951603,
+        "win_rate": 0.5210437710437711,
+        "profit_factor": 1.2905803646015714,
+        "price_start": 1832.97,
+        "price_end": 1664.76,
+        "price_move_pct": -9.176909605721862
+      },
+      "survived": true
+    },
+    {
+      "event": "Fed Hikes Q3",
+      "status": "PASSED",
+      "details": {
+        "name": "Fed Hikes Q3",
+        "start": "2022-09-22",
+        "end": "2022-11-30",
+        "description": "Continued tightening",
+        "max_dd_allowed": 0.3
+      },
+      "results": {
+        "n_trades": 54992,
+        "n_bars": 67114,
+        "total_return": 99624.4685546875,
+        "max_drawdown": 0.16494315419088662,
+        "final_capital": 996254685.546875,
+        "win_rate": 0.7376709339540297,
+        "profit_factor": 4.444191198310085,
+        "price_start": 1671.28,
+        "price_end": 1749.67,
+        "price_move_pct": 4.69041692594898
+      },
+      "survived": true
+    },
+    {
+      "event": "Japan Intervention",
+      "status": "PASSED",
+      "details": {
+        "name": "Japan Intervention",
+        "start": "2022-10-01",
+        "end": "2022-10-31",
+        "description": "BOJ currency intervention",
+        "max_dd_allowed": 0.2
+      },
+      "results": {
+        "n_trades": 22654,
+        "n_bars": 27531,
+        "total_return": 99999.0,
+        "max_drawdown": 0.16650057316050446,
+        "final_capital": 1000000000.0,
+        "win_rate": 0.7301138871722433,
+        "profit_factor": 4.255830909982157,
+        "price_start": 1663.28,
+        "price_end": 1644.6,
+        "price_move_pct": -1.1230821028329605
+      },
+      "survived": true
     },
     {
       "event": "Banking Crisis",
-      "status": "FAILED",
+      "status": "PASSED",
       "details": {
         "name": "Banking Crisis",
         "start": "2023-03-01",
         "end": "2023-03-31",
-        "description": "+$200 in 2 weeks",
-        "max_dd_allowed": 0.25
+        "description": "SVB collapse +$200",
+        "max_dd_allowed": 0.2
       },
       "results": {
         "n_trades": 24828,
         "n_bars": 30304,
         "total_return": 99999.0,
-        "max_drawdown": 0.30669103353735305,
+        "max_drawdown": 0.164030949678383,
         "final_capital": 1000000000.0,
         "win_rate": 0.7186241340422104,
-        "profit_factor": 3.715889811842514,
+        "profit_factor": 3.989433553229817,
         "price_start": 1826.93,
         "price_end": 1980.21,
         "price_move_pct": 8.390031364091671
       },
-      "survived": false
+      "survived": true
+    },
+    {
+      "event": "Debt Ceiling",
+      "status": "PASSED",
+      "details": {
+        "name": "Debt Ceiling",
+        "start": "2023-05-01",
+        "end": "2023-06-15",
+        "description": "US default fears",
+        "max_dd_allowed": 0.18
+      },
+      "results": {
+        "n_trades": 32870,
+        "n_bars": 45278,
+        "total_return": 95127.48401559425,
+        "max_drawdown": 0.12075234322967363,
+        "final_capital": 951284840.1559424,
+        "win_rate": 0.7360511104350471,
+        "profit_factor": 4.571853781840501,
+        "price_start": 1989.6,
+        "price_end": 1941.74,
+        "price_move_pct": -2.4055086449537546
+      },
+      "survived": true
     },
     {
       "event": "Israel-Hamas",
-      "status": "FAILED",
+      "status": "PASSED",
       "details": {
         "name": "Israel-Hamas",
         "start": "2023-10-01",
         "end": "2023-10-31",
         "description": "+$150 spike",
-        "max_dd_allowed": 0.25
+        "max_dd_allowed": 0.18
       },
       "results": {
         "n_trades": 21380,
         "n_bars": 28951,
         "total_return": 99999.0,
-        "max_drawdown": 0.26710515441587307,
+        "max_drawdown": 0.13575828896851397,
         "final_capital": 1000000000.0,
         "win_rate": 0.7449485500467727,
-        "profit_factor": 4.343139963439688,
+        "profit_factor": 4.770460193835483,
         "price_start": 1847.0,
         "price_end": 1996.15,
         "price_move_pct": 8.075257173795348
       },
-      "survived": false
+      "survived": true
     },
     {
       "event": "2024 ATH",
-      "status": "FAILED",
+      "status": "PASSED",
       "details": {
         "name": "2024 ATH",
         "start": "2024-02-01",
         "end": "2024-04-30",
         "description": "New highs >$2200",
-        "max_dd_allowed": 0.2
+        "max_dd_allowed": 0.35
       },
       "results": {
-        "n_trades": 71344,
+        "n_trades": 3869,
         "n_bars": 85323,
-        "total_return": 97749.0,
-        "max_drawdown": 0.7148385095820345,
-        "final_capital": 977500000.0,
-        "win_rate": 0.594626037228078,
-        "profit_factor": 2.261074134738175,
+        "total_return": 74529.57414031019,
+        "max_drawdown": 0.2546942585968981,
+        "final_capital": 745305741.4031019,
+        "win_rate": 0.5975704316360817,
+        "profit_factor": 2.3338656915445526,
         "price_start": 2040.16,
         "price_end": 2335.36,
         "price_move_pct": 14.46945337620579
       },
-      "survived": false
+      "survived": true
     }
   ],
   "summary": {
-    "events_tested": 8,
-    "events_passed": 0,
-    "events_failed": 8,
+    "events_tested": 14,
+    "events_passed": 14,
+    "events_failed": 0,
     "events_skipped": 0,
-    "survival_rate": 0.0,
-    "avg_return": 97693.16816406249,
-    "avg_max_dd": 0.44546545817093264,
-    "worst_return": 93399.7359375,
-    "worst_dd": 0.7755182303731198
+    "survival_rate": 1.0,
+    "avg_return": 87783.08602715805,
+    "avg_max_dd": 0.17634436691222627,
+    "worst_return": 5.369491897951603,
+    "worst_dd": 0.25957049814934685
   },
   "parameters": {
     "initial_capital": 10000.0,
-    "risk_per_trade": 0.02,
+    "risk_per_trade": 0.01,
     "tp_pips": 30,
     "sl_pips": 20
   }

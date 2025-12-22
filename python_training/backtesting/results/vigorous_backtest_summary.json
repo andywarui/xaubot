@@ -1,0 +1,24 @@
+{
+  "run_date": "2025-12-21T06:55:42.764123",
+  "total_time_minutes": 0.2040220340092977,
+  "results": {
+    "walk_forward": {
+      "status": "ERROR",
+      "error": "'WalkForwardOptimizer' object has no attribute 'run_walk_forward'"
+    },
+    "monte_carlo": {
+      "status": "ERROR",
+      "error": "'MonteCarloSimulator' object has no attribute 'run_full_monte_carlo'"
+    },
+    "stress_test": {
+      "status": "PASSED",
+      "events_passed": 14,
+      "events_total": 14,
+      "survival_rate": 1.0
+    },
+    "robustness": {
+      "status": "ERROR",
+      "error": "Could not open /workspace/xaubot/python_training/models/lightgbm_balanced_model.txt"
+    }
+  }
+}
