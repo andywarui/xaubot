@@ -1,9 +1,5 @@
 {
-<<<<<<< HEAD
-  "run_date": "2025-12-20T06:07:32.044591",
-=======
   "run_date": "2025-12-20T23:47:23.773097",
->>>>>>> 6b864c6 (Update backtesting results for Monte Carlo, regime analysis, and stress tests with new run dates and improved metrics, reflecting enhanced performance and survival rates.)
   "total_bars": 6600458,
   "regime_distribution": {
     "trend": {
