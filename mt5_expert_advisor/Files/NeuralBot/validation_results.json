@@ -1,0 +1,44 @@
+{
+  "validation": {
+    "tests_run": 100,
+    "predictions": {
+      "HOLD": 49,
+      "BUY": 4,
+      "SELL": 47
+    },
+    "avg_confidence": 0.7433856651186943,
+    "errors": [],
+    "transformer_range": [
+      -0.9035806655883789,
+      0.706403374671936
+    ]
+  },
+  "edge_cases": {
+    "tests": [
+      {
+        "name": "zeros",
+        "passed": true
+      },
+      {
+        "name": "ones",
+        "passed": true
+      },
+      {
+        "name": "large",
+        "passed": true
+      },
+      {
+        "name": "negative",
+        "passed": true
+      },
+      {
+        "name": "nan",
+        "passed": true,
+        "note": "NaN in output: False"
+      }
+    ],
+    "passed": 5,
+    "total": 5
+  },
+  "overall_passed": true
+}
