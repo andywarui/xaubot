@@ -96,10 +96,10 @@ df['swing_low_dist'] = df['close'] - df['low'].rolling(5).min()
 # Order blocks (using PAST bars only - no look-ahead bias)
 # An OB is identified by a strong momentum candle followed by consolidation
 # We detect the momentum candle itself as a potential OB zone
-df['bullish_ob'] = ((df['close'] > df['open']) & 
+df['bullish_ob'] = ((df['close'] > df['open']) &
                    ((df['close'] - df['open']) > df['atr_14'] * 0.5) &
                    (df['close'].shift(1) < df['open'].shift(1))).astype(int)
-df['bearish_ob'] = ((df['close'] < df['open']) & 
+df['bearish_ob'] = ((df['close'] < df['open']) &
                    ((df['open'] - df['close']) > df['atr_14'] * 0.5) &
                    (df['close'].shift(1) > df['open'].shift(1))).astype(int)
 
