@@ -21,6 +21,17 @@ input bool EnablePredictionLog = false;
 input string PredictionLogFile = "prediction_log.csv";
 input bool EnableOnnxDebugLogs = false;  // ONNX debug logs (development only)
 
+//--- Hybrid Validation Filters (Research-based optimization)
+input group "=== Hybrid Validation Filters ==="
+input bool EnableHybridValidation = true;   // Enable ML + Technical validation
+input double MaxSpreadUSD = 2.0;            // Max spread in USD
+input double RSI_OverboughtLevel = 70.0;    // RSI overbought threshold
+input double RSI_OversoldLevel = 30.0;      // RSI oversold threshold
+input double ATR_MinLevel = 1.5;            // Min ATR (avoid low volatility)
+input double ATR_MaxLevel = 8.0;            // Max ATR (avoid extreme volatility)
+input double ADX_MinStrength = 20.0;        // Min ADX (trend strength)
+input bool RequireMTFAlignment = true;      // Require multi-timeframe EMA alignment
+
 CTrade trade;
 datetime lastM1BarTime = 0;
 int tradesOpenedToday = 0;
@@ -52,6 +63,10 @@ int g_ema20_m15_handle = INVALID_HANDLE;
 int g_ema20_h1_handle  = INVALID_HANDLE;
 int g_ema20_h4_handle  = INVALID_HANDLE;
 int g_ema20_d1_handle  = INVALID_HANDLE;
+
+// Hybrid validation indicator handles
+int g_macd_handle = INVALID_HANDLE;
+int g_adx_handle = INVALID_HANDLE;
 
 long LoadOnnxWithFallback(const string model_file, const uint flags)
 {
@@ -100,15 +115,21 @@ bool InitIndicators()
    g_ema20_h4_handle  = iMA(_Symbol, PERIOD_H4, 20, 0, MODE_EMA, PRICE_CLOSE);
    g_ema20_d1_handle  = iMA(_Symbol, PERIOD_D1, 20, 0, MODE_EMA, PRICE_CLOSE);
 
+   // Hybrid validation indicators (M15 timeframe for filtering)
+   g_macd_handle = iMACD(_Symbol, PERIOD_M15, 12, 26, 9, PRICE_CLOSE);
+   g_adx_handle = iADX(_Symbol, PERIOD_M15, 14);
+
    if(g_atr14_m1_handle == INVALID_HANDLE || g_rsi14_m1_handle == INVALID_HANDLE ||
       g_ema10_m1_handle == INVALID_HANDLE || g_ema20_m1_handle == INVALID_HANDLE || g_ema50_m1_handle == INVALID_HANDLE ||
       g_ema20_m5_handle == INVALID_HANDLE || g_ema20_m15_handle == INVALID_HANDLE || g_ema20_h1_handle == INVALID_HANDLE ||
-      g_ema20_h4_handle == INVALID_HANDLE || g_ema20_d1_handle == INVALID_HANDLE)
+      g_ema20_h4_handle == INVALID_HANDLE || g_ema20_d1_handle == INVALID_HANDLE ||
+      g_macd_handle == INVALID_HANDLE || g_adx_handle == INVALID_HANDLE)
    {
       Print("ERROR: Failed to create one or more indicator handles");
       return false;
    }
 
+   Print("✓ All indicators initialized successfully (including hybrid validation)");
    return true;
 }
 
@@ -213,6 +234,12 @@ void OnDeinit(const int reason)
    if(g_ema20_h1_handle != INVALID_HANDLE)  { IndicatorRelease(g_ema20_h1_handle);  g_ema20_h1_handle = INVALID_HANDLE; }
    if(g_ema20_h4_handle != INVALID_HANDLE)  { IndicatorRelease(g_ema20_h4_handle);  g_ema20_h4_handle = INVALID_HANDLE; }
    if(g_ema20_d1_handle != INVALID_HANDLE)  { IndicatorRelease(g_ema20_d1_handle);  g_ema20_d1_handle = INVALID_HANDLE; }
+
+   // Release hybrid validation indicators
+   if(g_macd_handle != INVALID_HANDLE) { IndicatorRelease(g_macd_handle); g_macd_handle = INVALID_HANDLE; }
+   if(g_adx_handle != INVALID_HANDLE) { IndicatorRelease(g_adx_handle); g_adx_handle = INVALID_HANDLE; }
+
+   Print("All indicators released");
 }
 
 //+------------------------------------------------------------------+
@@ -599,6 +626,219 @@ double CalculateLotSize(ENUM_ORDER_TYPE orderType)
 }
 
 //+------------------------------------------------------------------+
+//| Hybrid Validation: ML + Technical Indicators (Research-based)   |
+//| Filters false signals using multi-layer validation              |
+//+------------------------------------------------------------------+
+bool ValidateLongSignal(double ml_confidence)
+{
+   if(!EnableHybridValidation)
+      return true;  // Skip validation if disabled
+
+   // 1. Spread filter - avoid high transaction costs
+   double spread_usd = (SymbolInfoDouble(_Symbol, SYMBOL_ASK) -
+                        SymbolInfoDouble(_Symbol, SYMBOL_BID));
+
+   if(spread_usd > MaxSpreadUSD)
+   {
+      if(EnablePredictionLog)
+         Print("FILTER REJECT [LONG]: Spread too high: $", DoubleToString(spread_usd, 2),
+               " > $", DoubleToString(MaxSpreadUSD, 2));
+      return false;
+   }
+
+   // 2. RSI filter - avoid overbought conditions
+   double rsi[];
+   ArraySetAsSeries(rsi, true);
+   if(CopyBuffer(g_rsi14_m1_handle, 0, 0, 1, rsi) > 0)
+   {
+      if(rsi[0] > RSI_OverboughtLevel)
+      {
+         if(EnablePredictionLog)
+            Print("FILTER REJECT [LONG]: RSI overbought: ", DoubleToString(rsi[0], 1),
+                  " > ", DoubleToString(RSI_OverboughtLevel, 1));
+         return false;
+      }
+   }
+
+   // 3. MACD alignment - bullish confirmation
+   double macd_main[], macd_signal[];
+   ArraySetAsSeries(macd_main, true);
+   ArraySetAsSeries(macd_signal, true);
+
+   if(CopyBuffer(g_macd_handle, 0, 0, 1, macd_main) > 0 &&
+      CopyBuffer(g_macd_handle, 1, 0, 1, macd_signal) > 0)
+   {
+      if(macd_main[0] < macd_signal[0])
+      {
+         if(EnablePredictionLog)
+            Print("FILTER REJECT [LONG]: MACD bearish (main: ", DoubleToString(macd_main[0], 2),
+                  " < signal: ", DoubleToString(macd_signal[0], 2), ")");
+         return false;
+      }
+   }
+
+   // 4. ADX trend strength - ensure trending market
+   double adx[];
+   ArraySetAsSeries(adx, true);
+   if(CopyBuffer(g_adx_handle, 0, 0, 1, adx) > 0)
+   {
+      if(adx[0] < ADX_MinStrength)
+      {
+         if(EnablePredictionLog)
+            Print("FILTER REJECT [LONG]: ADX too weak (ranging): ", DoubleToString(adx[0], 1),
+                  " < ", DoubleToString(ADX_MinStrength, 1));
+         return false;
+      }
+   }
+
+   // 5. ATR volatility filter - sweet spot for trading
+   double atr[];
+   ArraySetAsSeries(atr, true);
+   if(CopyBuffer(g_atr14_m1_handle, 0, 0, 1, atr) > 0)
+   {
+      if(atr[0] < ATR_MinLevel || atr[0] > ATR_MaxLevel)
+      {
+         if(EnablePredictionLog)
+            Print("FILTER REJECT [LONG]: ATR outside range: ", DoubleToString(atr[0], 2),
+                  " (range: ", DoubleToString(ATR_MinLevel, 2), "-", DoubleToString(ATR_MaxLevel, 2), ")");
+         return false;
+      }
+   }
+
+   // 6. Multi-timeframe EMA alignment - higher TF confirmation
+   if(RequireMTFAlignment)
+   {
+      double price = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
+      double ema20_m15[], ema20_h1[];
+      ArraySetAsSeries(ema20_m15, true);
+      ArraySetAsSeries(ema20_h1, true);
+
+      if(CopyBuffer(g_ema20_m15_handle, 0, 0, 1, ema20_m15) > 0 &&
+         CopyBuffer(g_ema20_h1_handle, 0, 0, 1, ema20_h1) > 0)
+      {
+         if(price < ema20_m15[0] || price < ema20_h1[0])
+         {
+            if(EnablePredictionLog)
+               Print("FILTER REJECT [LONG]: Price below higher TF EMAs (M15: ",
+                     DoubleToString(ema20_m15[0], 2), ", H1: ", DoubleToString(ema20_h1[0], 2), ")");
+            return false;
+         }
+      }
+   }
+
+   if(EnablePredictionLog)
+      Print("✓ LONG signal passed all hybrid validation filters (confidence: ",
+            DoubleToString(ml_confidence, 3), ")");
+
+   return true;
+}
+
+//+------------------------------------------------------------------+
+bool ValidateShortSignal(double ml_confidence)
+{
+   if(!EnableHybridValidation)
+      return true;  // Skip validation if disabled
+
+   // 1. Spread filter - avoid high transaction costs
+   double spread_usd = (SymbolInfoDouble(_Symbol, SYMBOL_ASK) -
+                        SymbolInfoDouble(_Symbol, SYMBOL_BID));
+
+   if(spread_usd > MaxSpreadUSD)
+   {
+      if(EnablePredictionLog)
+         Print("FILTER REJECT [SHORT]: Spread too high: $", DoubleToString(spread_usd, 2),
+               " > $", DoubleToString(MaxSpreadUSD, 2));
+      return false;
+   }
+
+   // 2. RSI filter - avoid oversold conditions
+   double rsi[];
+   ArraySetAsSeries(rsi, true);
+   if(CopyBuffer(g_rsi14_m1_handle, 0, 0, 1, rsi) > 0)
+   {
+      if(rsi[0] < RSI_OversoldLevel)
+      {
+         if(EnablePredictionLog)
+            Print("FILTER REJECT [SHORT]: RSI oversold: ", DoubleToString(rsi[0], 1),
+                  " < ", DoubleToString(RSI_OversoldLevel, 1));
+         return false;
+      }
+   }
+
+   // 3. MACD alignment - bearish confirmation
+   double macd_main[], macd_signal[];
+   ArraySetAsSeries(macd_main, true);
+   ArraySetAsSeries(macd_signal, true);
+
+   if(CopyBuffer(g_macd_handle, 0, 0, 1, macd_main) > 0 &&
+      CopyBuffer(g_macd_handle, 1, 0, 1, macd_signal) > 0)
+   {
+      if(macd_main[0] > macd_signal[0])
+      {
+         if(EnablePredictionLog)
+            Print("FILTER REJECT [SHORT]: MACD bullish (main: ", DoubleToString(macd_main[0], 2),
+                  " > signal: ", DoubleToString(macd_signal[0], 2), ")");
+         return false;
+      }
+   }
+
+   // 4. ADX trend strength - ensure trending market
+   double adx[];
+   ArraySetAsSeries(adx, true);
+   if(CopyBuffer(g_adx_handle, 0, 0, 1, adx) > 0)
+   {
+      if(adx[0] < ADX_MinStrength)
+      {
+         if(EnablePredictionLog)
+            Print("FILTER REJECT [SHORT]: ADX too weak (ranging): ", DoubleToString(adx[0], 1),
+                  " < ", DoubleToString(ADX_MinStrength, 1));
+         return false;
+      }
+   }
+
+   // 5. ATR volatility filter - sweet spot for trading
+   double atr[];
+   ArraySetAsSeries(atr, true);
+   if(CopyBuffer(g_atr14_m1_handle, 0, 0, 1, atr) > 0)
+   {
+      if(atr[0] < ATR_MinLevel || atr[0] > ATR_MaxLevel)
+      {
+         if(EnablePredictionLog)
+            Print("FILTER REJECT [SHORT]: ATR outside range: ", DoubleToString(atr[0], 2),
+                  " (range: ", DoubleToString(ATR_MinLevel, 2), "-", DoubleToString(ATR_MaxLevel, 2), ")");
+         return false;
+      }
+   }
+
+   // 6. Multi-timeframe EMA alignment - higher TF confirmation
+   if(RequireMTFAlignment)
+   {
+      double price = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+      double ema20_m15[], ema20_h1[];
+      ArraySetAsSeries(ema20_m15, true);
+      ArraySetAsSeries(ema20_h1, true);
+
+      if(CopyBuffer(g_ema20_m15_handle, 0, 0, 1, ema20_m15) > 0 &&
+         CopyBuffer(g_ema20_h1_handle, 0, 0, 1, ema20_h1) > 0)
+      {
+         if(price > ema20_m15[0] || price > ema20_h1[0])
+         {
+            if(EnablePredictionLog)
+               Print("FILTER REJECT [SHORT]: Price above higher TF EMAs (M15: ",
+                     DoubleToString(ema20_m15[0], 2), ", H1: ", DoubleToString(ema20_h1[0], 2), ")");
+            return false;
+         }
+      }
+   }
+
+   if(EnablePredictionLog)
+      Print("✓ SHORT signal passed all hybrid validation filters (confidence: ",
+            DoubleToString(ml_confidence, 3), ")");
+
+   return true;
+}
+
+//+------------------------------------------------------------------+
 void OnTick()
 {
    ResetDailyCounters();
@@ -628,12 +868,19 @@ void OnTick()
    // Open new position
    if(signal == 2) // LONG
    {
+      // Hybrid validation: Check ML signal against technical indicators
+      if(!ValidateLongSignal(confidence))
+      {
+         Print("ML LONG signal rejected by hybrid validation filters");
+         return;
+      }
+
       double price = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
       // Use configurable SL/TP in USD
       double sl = price - StopLossUSD;
       double tp = price + TakeProfitUSD;
       double lots = CalculateLotSize(ORDER_TYPE_BUY);
-      
+
       // Skip if lot size is 0 (insufficient margin)
       if(lots <= 0)
       {
@@ -666,12 +913,19 @@ void OnTick()
    }
    else if(signal == 0) // SHORT
    {
+      // Hybrid validation: Check ML signal against technical indicators
+      if(!ValidateShortSignal(confidence))
+      {
+         Print("ML SHORT signal rejected by hybrid validation filters");
+         return;
+      }
+
       double price = SymbolInfoDouble(_Symbol, SYMBOL_BID);
       // Use configurable SL/TP in USD
       double sl = price + StopLossUSD;
       double tp = price - TakeProfitUSD;
       double lots = CalculateLotSize(ORDER_TYPE_SELL);
-      
+
       // Skip if lot size is 0 (insufficient margin)
       if(lots <= 0)
       {
