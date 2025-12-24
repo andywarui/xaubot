@@ -61,7 +61,7 @@ model = MultiTFTransformer(
 )
 
 # Load trained weights
-checkpoint = torch.load(model_path, map_location='cpu')
+checkpoint = torch.load(model_path, map_location='cpu', weights_only=False)
 if 'model_state_dict' in checkpoint:
     model.load_state_dict(checkpoint['model_state_dict'])
     print(f"✓ Loaded checkpoint (epoch {checkpoint.get('epoch', 'unknown')})")
