@@ -42,6 +42,9 @@ def run_single_model_backtest(data: pd.DataFrame, model_path: str) -> dict:
         take_profit_usd=8.0
     )
 
+    # Disable MTF alignment for synthetic data (MTF EMAs not properly calculated)
+    backtester.require_mtf_alignment = False
+
     # Load model
     backtester.load_lightgbm_model(model_path)
 
@@ -122,6 +125,9 @@ def run_ensemble_model_backtest(data: pd.DataFrame, lgb_path: str, transformer_p
         stop_loss_usd=4.0,
         take_profit_usd=8.0
     )
+
+    # Disable MTF alignment for synthetic data (MTF EMAs not properly calculated)
+    backtester.require_mtf_alignment = False
 
     # Load models
     backtester.load_lightgbm_model(lgb_path)

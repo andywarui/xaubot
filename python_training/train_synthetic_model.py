@@ -84,7 +84,7 @@ def calculate_features(data, idx):
 
     return features
 
-def create_target(data, idx, lookahead=15):
+def create_target(data, idx, lookahead=10):
     """
     Create target label based on future price movement
 
@@ -92,6 +92,8 @@ def create_target(data, idx, lookahead=15):
     0 = SHORT (price will go down)
     1 = HOLD (no significant movement)
     2 = LONG (price will go up)
+
+    TUNED: More aggressive thresholds for better signal generation
     """
     if idx + lookahead >= len(data):
         return None
@@ -102,9 +104,9 @@ def create_target(data, idx, lookahead=15):
     # Calculate future return
     future_return = (future_price - current_price) / current_price
 
-    # Thresholds for XAUUSD (in percentage)
-    long_threshold = 0.0015   # 0.15% up (~$3 on $2000)
-    short_threshold = -0.0015  # 0.15% down
+    # TUNED: Lower thresholds for more trading signals
+    long_threshold = 0.0005   # 0.05% up (~$1 on $2000) - more aggressive
+    short_threshold = -0.0005  # 0.05% down - more aggressive
 
     if future_return > long_threshold:
         return 2  # LONG
