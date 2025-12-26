@@ -238,7 +238,7 @@ def main():
     print("Step 2: Running Single Model backtest...")
     print("="*70)
 
-    lgb_model_path = str(project_root / 'python_training' / 'models' / 'lightgbm_xauusd.onnx')
+    lgb_model_path = str(project_root / 'python_training' / 'models' / 'lightgbm_synthetic.onnx')
 
     if not Path(lgb_model_path).exists():
         print(f"\n❌ ERROR: LightGBM model not found at {lgb_model_path}")
