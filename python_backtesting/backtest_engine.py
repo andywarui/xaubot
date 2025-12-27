@@ -31,8 +31,8 @@ class XAUUSDBacktester:
                  risk_percent: float = 0.5,
                  confidence_threshold: float = 0.60,
                  max_trades_per_day: int = 5,
-                 stop_loss_usd: float = 4.0,
-                 take_profit_usd: float = 8.0):
+                 atr_multiplier_sl: float = 1.5,
+                 risk_reward_ratio: float = 2.0):
         """
         Initialize backtester
 
@@ -41,8 +41,8 @@ class XAUUSDBacktester:
             risk_percent: Risk per trade (%)
             confidence_threshold: Minimum ML confidence (0-1)
             max_trades_per_day: Maximum trades per day
-            stop_loss_usd: Stop loss in USD price movement
-            take_profit_usd: Take profit in USD price movement
+            atr_multiplier_sl: ATR multiplier for stop loss (default 1.5)
+            risk_reward_ratio: TP/SL ratio (default 2.0 for 2:1 RR)
         """
         self.initial_balance = initial_balance
         self.balance = initial_balance
@@ -50,8 +50,8 @@ class XAUUSDBacktester:
         self.risk_percent = risk_percent
         self.confidence_threshold = confidence_threshold
         self.max_trades_per_day = max_trades_per_day
-        self.stop_loss_usd = stop_loss_usd
-        self.take_profit_usd = take_profit_usd
+        self.atr_multiplier_sl = atr_multiplier_sl
+        self.risk_reward_ratio = risk_reward_ratio
 
         # Hybrid validation parameters
         self.max_spread_usd = 2.0
@@ -255,11 +255,15 @@ class XAUUSDBacktester:
 
         # Get model output
         outputs = self.lightgbm_session.run(None, {'input': input_data})
-        probabilities = outputs[1][0]  # Get probabilities (softmax)
 
-        # Get prediction and confidence
-        predicted_class = int(np.argmax(probabilities))
-        confidence = float(probabilities[predicted_class])
+        # LightGBM ONNX format:
+        # outputs[0] = label (predicted class)
+        # outputs[1] = list of dicts with probabilities
+        prob_dict = outputs[1][0]  # Get probability dictionary
+
+        # Find class with highest probability
+        predicted_class = max(prob_dict.keys(), key=lambda k: prob_dict[k])
+        confidence = float(prob_dict[predicted_class])
 
         return (predicted_class, confidence)
 
@@ -396,21 +400,35 @@ class XAUUSDBacktester:
 
         return lots
 
-    def open_trade(self, signal: int, entry_price: float, entry_time: datetime):
-        """Open a new trade"""
+    def open_trade(self, signal: int, entry_price: float, entry_time: datetime, atr: float = 3.0):
+        """
+        Open a new trade with dynamic ATR-based TP/SL
+
+        Args:
+            signal: 0=SHORT, 2=LONG
+            entry_price: Entry price
+            entry_time: Entry timestamp
+            atr: Current ATR value for dynamic SL calculation
+        """
         if self.open_position is not None:
             return  # Already have an open position
 
-        # Calculate position size
-        lots = self.calculate_position_size(entry_price, self.stop_loss_usd)
+        # Calculate dynamic SL distance based on ATR
+        sl_distance = atr * self.atr_multiplier_sl
 
-        # Set SL/TP
+        # Calculate TP distance using risk-reward ratio
+        tp_distance = sl_distance * self.risk_reward_ratio
+
+        # Calculate position size based on SL distance
+        lots = self.calculate_position_size(entry_price, sl_distance)
+
+        # Set SL/TP based on direction
         if signal == 2:  # LONG
-            stop_loss = entry_price - self.stop_loss_usd
-            take_profit = entry_price + self.take_profit_usd
-        else:  # SHORT
-            stop_loss = entry_price + self.stop_loss_usd
-            take_profit = entry_price - self.take_profit_usd
+            stop_loss = entry_price - sl_distance
+            take_profit = entry_price + tp_distance
+        else:  # SHORT (signal == 0)
+            stop_loss = entry_price + sl_distance
+            take_profit = entry_price - tp_distance
 
         self.open_position = {
             'signal': signal,
@@ -418,7 +436,10 @@ class XAUUSDBacktester:
             'entry_time': entry_time,
             'lots': lots,
             'stop_loss': stop_loss,
-            'take_profit': take_profit
+            'take_profit': take_profit,
+            'atr': atr,
+            'sl_distance': sl_distance,
+            'tp_distance': tp_distance
         }
 
         self.daily_trades += 1

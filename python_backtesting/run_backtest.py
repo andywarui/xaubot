@@ -32,18 +32,20 @@ def run_single_model_backtest(data: pd.DataFrame, model_path: str) -> dict:
     print("SINGLE MODEL BACKTEST (LightGBM + Hybrid Validation)")
     print("="*70)
 
-    # Initialize backtester
+    # Initialize backtester with AGGRESSIVE settings
     backtester = XAUUSDBacktester(
         initial_balance=10000.0,
         risk_percent=0.5,
-        confidence_threshold=0.60,
-        max_trades_per_day=5,
-        stop_loss_usd=4.0,
-        take_profit_usd=8.0
+        confidence_threshold=0.35,  # LOWERED from 0.60 to force more trades
+        max_trades_per_day=10,       # INCREASED from 5
+        atr_multiplier_sl=1.5,       # SL = 1.5 × ATR
+        risk_reward_ratio=2.0        # TP = 2 × SL (proper 2:1 RR)
     )
 
-    # Disable MTF alignment for synthetic data (MTF EMAs not properly calculated)
-    backtester.require_mtf_alignment = False
+    # AGGRESSIVE MODE: Relax validation filters
+    backtester.require_mtf_alignment = False  # Disabled
+    backtester.adx_min_strength = 15.0        # Lowered from 20
+    backtester.max_spread_usd = 3.0           # Increased from 2.0
 
     # Load model
     backtester.load_lightgbm_model(model_path)
@@ -53,7 +55,16 @@ def run_single_model_backtest(data: pd.DataFrame, model_path: str) -> dict:
     print(f"Period: {data['time'].min()} to {data['time'].max()}")
     print()
 
+    # Debug counters
+    debug_total_bars = 0
+    debug_signals_long = 0
+    debug_signals_short = 0
+    debug_signals_hold = 0
+    debug_confidence_passed = 0
+    debug_validation_failed = 0
+
     for idx in range(100, len(data)):  # Start from bar 100 to ensure enough history
+        debug_total_bars += 1
         row = data.iloc[idx]
         current_price = row['close']
         current_time = row['time']
@@ -74,25 +85,61 @@ def run_single_model_backtest(data: pd.DataFrame, model_path: str) -> dict:
             # Get ML prediction
             signal, confidence = backtester.predict_lightgbm(features)
 
+            # Track signals
+            if signal == 2:
+                debug_signals_long += 1
+            elif signal == 0:
+                debug_signals_short += 1
+            else:
+                debug_signals_hold += 1
+
             # Validate signal
             if signal == 2 and confidence >= backtester.confidence_threshold:  # LONG
+                debug_confidence_passed += 1
                 if backtester.validate_long_signal(data, idx, confidence):
-                    backtester.open_trade(signal, current_price, current_time)
+                    # Pass current ATR for dynamic TP/SL calculation
+                    current_atr = row.get('atr_14', 3.0)
+                    backtester.open_trade(signal, current_price, current_time, current_atr)
+                else:
+                    debug_validation_failed += 1
 
             elif signal == 0 and confidence >= backtester.confidence_threshold:  # SHORT
+                debug_confidence_passed += 1
                 if backtester.validate_short_signal(data, idx, confidence):
-                    backtester.open_trade(signal, current_price, current_time)
+                    # Pass current ATR for dynamic TP/SL calculation
+                    current_atr = row.get('atr_14', 3.0)
+                    backtester.open_trade(signal, current_price, current_time, current_atr)
+                else:
+                    debug_validation_failed += 1
 
         # Progress indicator
         if idx % 50000 == 0:
             progress = (idx / len(data)) * 100
             print(f"Progress: {progress:.1f}% | Balance: ${backtester.balance:,.2f} | Trades: {backtester.stats['total_trades']}")
+            print(f"  DEBUG: Signals → LONG: {debug_signals_long:,} | SHORT: {debug_signals_short:,} | HOLD: {debug_signals_hold:,}")
+            print(f"  DEBUG: Confidence Pass: {debug_confidence_passed:,} | Validation Fail: {debug_validation_failed:,}")
 
     # Close any remaining position
     if backtester.open_position is not None:
         final_price = data.iloc[-1]['close']
         final_time = data.iloc[-1]['time']
         backtester.update_position(final_price, final_time)
+
+    # Print debug summary
+    print("\n" + "="*70)
+    print("DEBUG ANALYSIS")
+    print("="*70)
+    print(f"Total bars analyzed: {debug_total_bars:,}")
+    print(f"\nModel Predictions:")
+    print(f"  LONG signals:  {debug_signals_long:,} ({debug_signals_long/debug_total_bars*100:.2f}%)")
+    print(f"  SHORT signals: {debug_signals_short:,} ({debug_signals_short/debug_total_bars*100:.2f}%)")
+    print(f"  HOLD signals:  {debug_signals_hold:,} ({debug_signals_hold/debug_total_bars*100:.2f}%)")
+    print(f"\nFiltering:")
+    print(f"  Passed confidence threshold (0.35): {debug_confidence_passed:,}")
+    print(f"  Failed hybrid validation: {debug_validation_failed:,}")
+    print(f"  Actual trades executed: {backtester.stats['total_trades']}")
+    print("="*70)
+    print()
 
     # Get results
     backtester.print_summary()
