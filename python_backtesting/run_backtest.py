@@ -96,7 +96,9 @@ def run_single_model_backtest(data: pd.DataFrame, model_path: str) -> dict:
             # Validate signal
             if signal == 2 and confidence >= backtester.confidence_threshold:  # LONG
                 debug_confidence_passed += 1
-                if backtester.validate_long_signal(data, idx, confidence):
+                # TEMPORARY: Disable validation to test raw model performance
+                # if backtester.validate_long_signal(data, idx, confidence):
+                if True:  # Always pass
                     # Pass current ATR for dynamic TP/SL calculation
                     current_atr = row.get('atr_14', 3.0)
                     backtester.open_trade(signal, current_price, current_time, current_atr)
@@ -105,7 +107,9 @@ def run_single_model_backtest(data: pd.DataFrame, model_path: str) -> dict:
 
             elif signal == 0 and confidence >= backtester.confidence_threshold:  # SHORT
                 debug_confidence_passed += 1
-                if backtester.validate_short_signal(data, idx, confidence):
+                # TEMPORARY: Disable validation to test raw model performance
+                # if backtester.validate_short_signal(data, idx, confidence):
+                if True:  # Always pass
                     # Pass current ATR for dynamic TP/SL calculation
                     current_atr = row.get('atr_14', 3.0)
                     backtester.open_trade(signal, current_price, current_time, current_atr)
