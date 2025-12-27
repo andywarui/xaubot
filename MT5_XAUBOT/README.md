@@ -220,6 +220,11 @@ After successful backtest verification:
 - **Time** (2): Hour sine, Hour cosine
 - **MTF Placeholders** (10): For future ensemble model
 
+### Additional Indicators (For Validation Only)
+- **Alligator** (13, 8, 5): Jaw, Teeth, Lips - Used when validation is enabled
+  - LONG validation: Price > all lines, Lines ordered (Lips > Teeth > Jaw)
+  - SHORT validation: Price < all lines, Lines ordered (Jaw > Teeth > Lips)
+
 ## ⚠️ Important Warnings
 
 1. **DO NOT enable validation** (`InpUseValidation = false`)

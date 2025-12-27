@@ -78,6 +78,20 @@ DIFFERENT RESULTS?
   → Check spread settings (realistic)
 
 ═══════════════════════════════════════════════════════════════════════
+INDICATORS USED
+═══════════════════════════════════════════════════════════════════════
+For ML Model (Always):
+  - ATR (14): Average True Range - for dynamic SL/TP
+  - RSI (14): Relative Strength Index - feature
+  - EMA (10, 20, 50): Exponential Moving Averages - features
+
+For Validation (Only if InpUseValidation = true):
+  - RSI: Overbought/Oversold filter
+  - Alligator (13, 8, 5): Trend direction filter
+    → LONG: Price above Jaw/Teeth/Lips, Lines ordered up
+    → SHORT: Price below Jaw/Teeth/Lips, Lines ordered down
+
+═══════════════════════════════════════════════════════════════════════
 FILE LOCATIONS
 ═══════════════════════════════════════════════════════════════════════
 EA File:     MQL5/Experts/XAUUSD_Neural_Bot_v2.mq5

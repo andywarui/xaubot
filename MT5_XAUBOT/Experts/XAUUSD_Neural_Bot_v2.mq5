@@ -27,6 +27,7 @@ int            g_rsi_handle = INVALID_HANDLE;
 int            g_ema10_handle = INVALID_HANDLE;
 int            g_ema20_handle = INVALID_HANDLE;
 int            g_ema50_handle = INVALID_HANDLE;
+int            g_alligator_handle = INVALID_HANDLE;
 datetime       g_last_bar_time = 0;
 int            g_daily_trades = 0;
 datetime       g_current_day = 0;
@@ -60,16 +61,17 @@ int OnInit()
     g_ema10_handle = iMA(_Symbol, PERIOD_M1, 10, 0, MODE_EMA, PRICE_CLOSE);
     g_ema20_handle = iMA(_Symbol, PERIOD_M1, 20, 0, MODE_EMA, PRICE_CLOSE);
     g_ema50_handle = iMA(_Symbol, PERIOD_M1, 50, 0, MODE_EMA, PRICE_CLOSE);
+    g_alligator_handle = iAlligator(_Symbol, PERIOD_M1, 13, 8, 8, 5, 5, 3, MODE_SMMA, PRICE_MEDIAN);
 
     if(g_atr_handle == INVALID_HANDLE || g_rsi_handle == INVALID_HANDLE ||
        g_ema10_handle == INVALID_HANDLE || g_ema20_handle == INVALID_HANDLE ||
-       g_ema50_handle == INVALID_HANDLE)
+       g_ema50_handle == INVALID_HANDLE || g_alligator_handle == INVALID_HANDLE)
     {
         Print("ERROR: Failed to initialize indicators");
         return INIT_FAILED;
     }
 
-    Print("✓ Indicators initialized");
+    Print("✓ Indicators initialized (ATR, RSI, EMA 10/20/50, Alligator)");
 
     //--- Configuration
     Print("Configuration:");
@@ -110,6 +112,8 @@ void OnDeinit(const int reason)
         IndicatorRelease(g_ema20_handle);
     if(g_ema50_handle != INVALID_HANDLE)
         IndicatorRelease(g_ema50_handle);
+    if(g_alligator_handle != INVALID_HANDLE)
+        IndicatorRelease(g_alligator_handle);
 
     Print("XAUUSD Neural Bot stopped. Reason: ", reason);
 }
@@ -294,12 +298,51 @@ bool ValidateSignal(int signal, double confidence)
     if(CopyBuffer(g_rsi_handle, 0, 1, 1, rsi) < 1)
         return false;
 
-    //--- Basic RSI filter
-    if(signal == 2 && rsi[0] > 70.0)  // LONG but overbought
+    //--- Get current price
+    double ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
+    double bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+    double current_price = (signal == 2) ? ask : bid;
+
+    //--- Get Alligator values
+    double jaw[], teeth[], lips[];
+    if(CopyBuffer(g_alligator_handle, 0, 1, 1, jaw) < 1)    // Jaw (blue, slowest)
+        return false;
+    if(CopyBuffer(g_alligator_handle, 1, 1, 1, teeth) < 1)  // Teeth (red, medium)
+        return false;
+    if(CopyBuffer(g_alligator_handle, 2, 1, 1, lips) < 1)   // Lips (green, fastest)
         return false;
 
-    if(signal == 0 && rsi[0] < 30.0)  // SHORT but oversold
-        return false;
+    //--- LONG validation
+    if(signal == 2)
+    {
+        // RSI: Not overbought
+        if(rsi[0] > 70.0)
+            return false;
+
+        // Alligator: Price should be above all lines (uptrend)
+        if(current_price <= jaw[0] || current_price <= teeth[0] || current_price <= lips[0])
+            return false;
+
+        // Alligator: Lines should be ordered (Lips > Teeth > Jaw for strong uptrend)
+        if(lips[0] <= teeth[0] || teeth[0] <= jaw[0])
+            return false;
+    }
+
+    //--- SHORT validation
+    if(signal == 0)
+    {
+        // RSI: Not oversold
+        if(rsi[0] < 30.0)
+            return false;
+
+        // Alligator: Price should be below all lines (downtrend)
+        if(current_price >= jaw[0] || current_price >= teeth[0] || current_price >= lips[0])
+            return false;
+
+        // Alligator: Lines should be ordered (Jaw > Teeth > Lips for strong downtrend)
+        if(jaw[0] <= teeth[0] || teeth[0] <= lips[0])
+            return false;
+    }
 
     return true;
 }
