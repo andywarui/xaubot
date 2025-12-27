@@ -3,3 +3,6 @@ __pycache__/
 python_training/models/lightgbm_synthetic.*
 python_training/models/lightgbm_balanced.onnx
 python_training/*.log
+
+# Exclude large raw data files (can be downloaded from Kaggle)
+data/raw/

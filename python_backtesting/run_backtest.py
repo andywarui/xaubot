@@ -225,7 +225,8 @@ def main():
 
     # Step 1: Prepare data
     print("Step 1: Preparing backtest data...")
-    data_file = project_root / 'python_backtesting' / 'xauusd_m1_backtest.parquet'
+    # Use REAL data from Kaggle (1.06M bars, 2022-2024)
+    data_file = project_root / 'python_backtesting' / 'xauusd_m1_real_backtest.parquet'
 
     if data_file.exists():
         print(f"Loading existing data from {data_file.name}...")
