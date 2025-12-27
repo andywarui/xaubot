@@ -7,3 +7,4 @@ python_training/*.log
 
 # Exclude large raw data files (can be downloaded from Kaggle)
 data/raw/
+python_training/models/*_config.json
