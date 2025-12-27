@@ -1,4 +1,5 @@
 __pycache__/
 # Exclude large trained model files (can be regenerated)
 python_training/models/lightgbm_synthetic.*
+python_training/models/lightgbm_balanced.onnx
 python_training/*.log

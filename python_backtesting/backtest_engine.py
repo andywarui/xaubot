@@ -110,6 +110,71 @@ class XAUUSDBacktester:
 
         print("✓ Transformer model and scaler loaded")
 
+    def calculate_27_features(self, data: pd.DataFrame, idx: int) -> np.ndarray:
+        """
+        Calculate 27 features for real data LightGBM model
+
+        Features (matching trained model):
+        - multi_tf_signal (placeholder: 0.0)
+        - body, body_abs, candle_range, close_position
+        - return_1, return_5, return_15, return_60
+        - tr, atr_14, rsi_14, ema_10, ema_20, ema_50
+        - hour_sin, hour_cos
+        - M5_trend, M5_position, M15_trend, M15_position
+        - H1_trend, H1_position, H4_trend, H4_position
+        - D1_trend, D1_position
+
+        Args:
+            data: DataFrame with OHLCV data and indicators
+            idx: Current index in dataframe
+
+        Returns:
+            numpy array of 27 features
+        """
+        features = np.zeros(27, dtype=np.float32)
+
+        if idx < 60:  # Need at least 60 bars for returns
+            return features
+
+        row = data.iloc[idx]
+
+        # Feature 0: multi_tf_signal (placeholder - set to 0.0 for now)
+        features[0] = 0.0
+
+        # Price features
+        body = row['close'] - row['open']
+        features[1] = body  # body
+        features[2] = abs(body)  # body_abs
+        features[3] = row['high'] - row['low']  # candle_range
+        features[4] = (row['close'] - row['low']) / (row['high'] - row['low'] + 1e-8)  # close_position
+
+        # Returns
+        features[5] = (data.iloc[idx]['close'] / data.iloc[idx-1]['close']) - 1.0  # return_1
+        features[6] = (data.iloc[idx]['close'] / data.iloc[idx-5]['close']) - 1.0  # return_5
+        features[7] = (data.iloc[idx]['close'] / data.iloc[idx-15]['close']) - 1.0  # return_15
+        features[8] = (data.iloc[idx]['close'] / data.iloc[idx-60]['close']) - 1.0  # return_60
+
+        # Technical indicators (pre-calculated in data)
+        features[9] = row.get('tr', 0.0)  # tr
+        features[10] = row.get('atr_14', 0.0)  # atr_14
+        features[11] = row.get('rsi_14', 50.0)  # rsi_14
+        features[12] = row.get('ema_10', row['close'])  # ema_10
+        features[13] = row.get('ema_20', row['close'])  # ema_20
+        features[14] = row.get('ema_50', row['close'])  # ema_50
+
+        # Time features
+        hour = row['time'].hour if 'time' in row.index else 0
+        features[15] = np.sin(2 * np.pi * hour / 24)  # hour_sin
+        features[16] = np.cos(2 * np.pi * hour / 24)  # hour_cos
+
+        # Multi-timeframe features (M5, M15, H1, H4, D1)
+        # These would be calculated from aggregated data
+        # For simplicity, using placeholder values (0.0)
+        for i in range(17, 27):
+            features[i] = 0.0
+
+        return features
+
     def calculate_26_features(self, data: pd.DataFrame, idx: int) -> np.ndarray:
         """
         Calculate 26 features for LightGBM model

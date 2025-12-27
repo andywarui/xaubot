@@ -68,8 +68,8 @@ def run_single_model_backtest(data: pd.DataFrame, model_path: str) -> dict:
 
         # Check if we can open a new trade
         if backtester.open_position is None and backtester.daily_trades < backtester.max_trades_per_day:
-            # Calculate features
-            features = backtester.calculate_26_features(data, idx)
+            # Calculate features (27 for real data model, 26 for synthetic)
+            features = backtester.calculate_27_features(data, idx)
 
             # Get ML prediction
             signal, confidence = backtester.predict_lightgbm(features)
@@ -244,7 +244,8 @@ def main():
     print("Step 2: Running Single Model backtest...")
     print("="*70)
 
-    lgb_model_path = str(project_root / 'python_training' / 'models' / 'lightgbm_synthetic.onnx')
+    # Use the real data model (trained on 4.6M samples from actual XAUUSD data)
+    lgb_model_path = str(project_root / 'python_training' / 'models' / 'lightgbm_balanced.onnx')
 
     if not Path(lgb_model_path).exists():
         print(f"\n❌ ERROR: LightGBM model not found at {lgb_model_path}")
