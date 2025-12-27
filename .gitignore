@@ -2,6 +2,7 @@ __pycache__/
 # Exclude large trained model files (can be regenerated)
 python_training/models/lightgbm_synthetic.*
 python_training/models/lightgbm_balanced.onnx
+python_training/models/lightgbm_real_26features.*
 python_training/*.log
 
 # Exclude large raw data files (can be downloaded from Kaggle)
