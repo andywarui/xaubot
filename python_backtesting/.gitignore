@@ -1,0 +1,13 @@
+# Ignore large generated data files
+*.parquet
+*.csv
+*.log
+
+# Ignore Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Ignore test outputs
+backtest_results/
+*.html

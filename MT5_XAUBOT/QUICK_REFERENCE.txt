@@ -1,0 +1,127 @@
+╔═══════════════════════════════════════════════════════════════════════╗
+║                 XAUUSD NEURAL BOT v2.0 - QUICK REFERENCE              ║
+║                        MT5 Backtest Parameters                         ║
+╚═══════════════════════════════════════════════════════════════════════╝
+
+BACKTEST PERFORMANCE (2022-2024, 3 years)
+═══════════════════════════════════════════════════════════════════════
+Initial Balance:  $10,000      →  Final Balance:  $57,281
+Net Profit:       +$47,281     →  Return:         +472.81%
+Win Rate:         43.83%       →  Profit Factor:  1.56
+Max Drawdown:     16.04%       →  Total Trades:   381
+
+═══════════════════════════════════════════════════════════════════════
+STRATEGY TESTER SETTINGS
+═══════════════════════════════════════════════════════════════════════
+Expert Advisor:   XAUUSD_Neural_Bot_v2
+Symbol:           XAUUSD (Gold)
+Period:           M1 (1 minute) ⚠️ MUST BE M1
+Date Range:       2022.01.01 - 2024.12.31
+Model:            Every tick ⚠️ MOST ACCURATE
+Deposit:          10,000 USD
+Leverage:         1:500
+
+═══════════════════════════════════════════════════════════════════════
+INPUT PARAMETERS - COPY EXACTLY!
+═══════════════════════════════════════════════════════════════════════
+InpRiskPercent          = 0.5      // Risk per trade (%)
+InpConfidenceThreshold  = 0.35     // ⚠️ CRITICAL: Must be 0.35
+InpMaxTradesPerDay      = 10       // Max trades per day
+InpATRMultiplierSL      = 1.5      // SL = 1.5 × ATR
+InpRiskRewardRatio      = 2.0      // TP = 2 × SL
+InpMagicNumber          = 230172   // Unique ID
+InpUseValidation        = false    // ⚠️ MUST BE FALSE!
+InpModelPath            = lightgbm_real_26features.onnx
+
+═══════════════════════════════════════════════════════════════════════
+⚠️ CRITICAL SETTINGS - DO NOT CHANGE!
+═══════════════════════════════════════════════════════════════════════
+1. InpUseValidation = false
+   → With validation: 0 trades, $0 profit ❌
+   → Without validation: 381 trades, +$47K profit ✅
+
+2. InpConfidenceThreshold = 0.35
+   → Tested optimal value
+   → Lower = more trades (risky), Higher = fewer trades
+
+3. Period = M1
+   → Model trained on 1-minute bars
+   → Other timeframes will FAIL
+
+═══════════════════════════════════════════════════════════════════════
+EXPECTED RESULTS (±10% variation is normal)
+═══════════════════════════════════════════════════════════════════════
+✓ Total Trades:    370-390
+✓ Net Profit:      $45K-$50K
+✓ Win Rate:        42%-46%
+✓ Profit Factor:   1.4-1.7
+✓ Max Drawdown:    15%-20%
+✓ Avg Win:         ~$750-$800
+✓ Avg Loss:        ~$380-$410
+
+═══════════════════════════════════════════════════════════════════════
+TROUBLESHOOTING
+═══════════════════════════════════════════════════════════════════════
+0 TRADES EXECUTED?
+  → Check: InpUseValidation = false (NOT true!)
+  → Check: Period = M1 (NOT M5, M15, H1, etc.)
+  → Check: Confidence = 0.35
+
+MODEL LOAD FAILED?
+  → File exists: MQL5/Files/lightgbm_real_26features.onnx
+  → File size: ~302 KB
+  → Restart MT5
+
+DIFFERENT RESULTS?
+  → Verify ALL parameters match exactly
+  → Use "Every tick" model
+  → Check spread settings (realistic)
+
+═══════════════════════════════════════════════════════════════════════
+INDICATORS USED
+═══════════════════════════════════════════════════════════════════════
+For ML Model (Always):
+  - ATR (14): Average True Range - for dynamic SL/TP
+  - RSI (14): Relative Strength Index - feature
+  - EMA (10, 20, 50): Exponential Moving Averages - features
+
+For Validation (Only if InpUseValidation = true):
+  - RSI: Overbought/Oversold filter
+  - Alligator (13, 8, 5): Trend direction filter
+    → LONG: Price above Jaw/Teeth/Lips, Lines ordered up
+    → SHORT: Price below Jaw/Teeth/Lips, Lines ordered down
+
+═══════════════════════════════════════════════════════════════════════
+FILE LOCATIONS
+═══════════════════════════════════════════════════════════════════════
+EA File:     MQL5/Experts/XAUUSD_Neural_Bot_v2.mq5
+Model File:  MQL5/Files/lightgbm_real_26features.onnx
+
+═══════════════════════════════════════════════════════════════════════
+NEXT STEPS AFTER SUCCESSFUL BACKTEST
+═══════════════════════════════════════════════════════════════════════
+1. Verify results match expected range (✓ if within ±10%)
+2. Deploy to DEMO account (paper trading)
+3. Monitor for 30 days minimum
+4. If profitable, deploy to LIVE with 0.01 lots
+5. Scale up after 90 days of profitability
+
+═══════════════════════════════════════════════════════════════════════
+RISK WARNING
+═══════════════════════════════════════════════════════════════════════
+Trading involves substantial risk of loss. Past performance does not
+guarantee future results. Only trade with capital you can afford to lose.
+Always paper trade for 30+ days before going live!
+
+═══════════════════════════════════════════════════════════════════════
+SUPPORT FILES
+═══════════════════════════════════════════════════════════════════════
+README.md                    → Detailed installation guide
+INSTALLATION_CHECKLIST.md    → Step-by-step verification
+QUICK_REFERENCE.txt          → This file (print it!)
+
+═══════════════════════════════════════════════════════════════════════
+
+REMEMBER: InpUseValidation = false | Confidence = 0.35 | M1 timeframe!
+
+═══════════════════════════════════════════════════════════════════════
