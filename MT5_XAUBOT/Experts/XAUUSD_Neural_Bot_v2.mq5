@@ -21,7 +21,7 @@ input bool     InpUseValidation = false;       // Enable hybrid validation (KEEP
 input string   InpModelPath = "lightgbm_real_26features.onnx";  // Model filename
 
 //--- Global Variables
-int            g_onnx_handle = INVALID_HANDLE;
+long           g_onnx_handle = INVALID_HANDLE;
 int            g_atr_handle = INVALID_HANDLE;
 int            g_rsi_handle = INVALID_HANDLE;
 int            g_ema10_handle = INVALID_HANDLE;
@@ -245,15 +245,14 @@ bool CalculateFeatures(double &features[])
 bool GetMLPrediction(const double &features[], int &signal, double &confidence)
 {
     //--- Prepare input (reshape to float)
-    float input[26];
+    float input_data[26];
     for(int i = 0; i < 26; i++)
-        input[i] = (float)features[i];
+        input_data[i] = (float)features[i];
 
     //--- Run ONNX model
-    long input_shape[] = {1, 26};
     float output_probs[];  // Will contain probabilities as dict values
 
-    if(!OnnxRun(g_onnx_handle, ONNX_NO_CONVERSION, input, output_probs))
+    if(!OnnxRun(g_onnx_handle, ONNX_NO_CONVERSION, input_data, output_probs))
     {
         Print("ERROR: ONNX prediction failed");
         return false;
