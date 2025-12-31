@@ -43,13 +43,14 @@ int OnInit()
     Print("========================================");
 
     //--- Load ONNX model
-    string model_full_path = "Files\\" + InpModelPath;
-    g_onnx_handle = OnnxCreate(model_full_path, ONNX_DEFAULT);
+    // Note: OnnxCreate automatically looks in MQL5\Files\ directory
+    g_onnx_handle = OnnxCreate(InpModelPath, ONNX_DEFAULT);
 
     if(g_onnx_handle == INVALID_HANDLE)
     {
-        Print("ERROR: Failed to load ONNX model: ", model_full_path);
+        Print("ERROR: Failed to load ONNX model: ", InpModelPath);
         Print("Make sure model is in: MQL5\\Files\\");
+        Print("Full path should be: MQL5\\Files\\", InpModelPath);
         return INIT_FAILED;
     }
 
