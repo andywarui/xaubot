@@ -5,7 +5,7 @@
 //+------------------------------------------------------------------+
 #property copyright "XAUBOT Neural Trading System"
 #property version   "2.00"
-#property description "LightGBM + ATR-based 2:1 RR Strategy"
+#property description "Neural Network + ATR-based 2:1 RR Strategy"
 #property description "Backtest: $10K → $57K (+472%) | Win Rate: 43.83%"
 
 //--- Input Parameters
@@ -259,10 +259,10 @@ bool GetMLPrediction(const double &features[], int &signal, double &confidence)
         return false;
     }
 
-    //--- CRITICAL: LightGBM ONNX outputs probabilities as 3 values
-    //    output_probs[0] = P(class 0 = SHORT)
-    //    output_probs[1] = P(class 1 = HOLD)
-    //    output_probs[2] = P(class 2 = LONG)
+    //--- CRITICAL: Neural Network ONNX outputs probabilities as 3 values
+    //    The model predicts which class has highest probability
+    //    signal 0 = SHORT, signal 1 = HOLD, signal 2 = LONG
+    //    output_probs[signal] = confidence for that class
 
     if(ArraySize(output_probs) < 3)
     {
