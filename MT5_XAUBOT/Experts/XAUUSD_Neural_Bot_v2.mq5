@@ -5,7 +5,7 @@
 //+------------------------------------------------------------------+
 #property copyright "XAUBOT Neural Trading System"
 #property version   "2.00"
-#property description "LightGBM + ATR-based 2:1 RR Strategy"
+#property description "Neural Network + ATR-based 2:1 RR Strategy"
 #property description "Backtest: $10K → $57K (+472%) | Win Rate: 43.83%"
 
 //--- Input Parameters
@@ -21,7 +21,7 @@ input bool     InpUseValidation = false;       // Enable hybrid validation (KEEP
 input string   InpModelPath = "lightgbm_real_26features.onnx";  // Model filename
 
 //--- Global Variables
-int            g_onnx_handle = INVALID_HANDLE;
+long           g_onnx_handle = INVALID_HANDLE;
 int            g_atr_handle = INVALID_HANDLE;
 int            g_rsi_handle = INVALID_HANDLE;
 int            g_ema10_handle = INVALID_HANDLE;
@@ -43,13 +43,14 @@ int OnInit()
     Print("========================================");
 
     //--- Load ONNX model
-    string model_full_path = "Files\\" + InpModelPath;
-    g_onnx_handle = OnnxCreate(model_full_path, ONNX_DEFAULT);
+    // Note: OnnxCreate automatically looks in MQL5\Files\ directory
+    g_onnx_handle = OnnxCreate(InpModelPath, ONNX_DEFAULT);
 
     if(g_onnx_handle == INVALID_HANDLE)
     {
-        Print("ERROR: Failed to load ONNX model: ", model_full_path);
+        Print("ERROR: Failed to load ONNX model: ", InpModelPath);
         Print("Make sure model is in: MQL5\\Files\\");
+        Print("Full path should be: MQL5\\Files\\", InpModelPath);
         return INIT_FAILED;
     }
 
@@ -245,24 +246,23 @@ bool CalculateFeatures(double &features[])
 bool GetMLPrediction(const double &features[], int &signal, double &confidence)
 {
     //--- Prepare input (reshape to float)
-    float input[26];
+    float input_data[26];
     for(int i = 0; i < 26; i++)
-        input[i] = (float)features[i];
+        input_data[i] = (float)features[i];
 
     //--- Run ONNX model
-    long input_shape[] = {1, 26};
     float output_probs[];  // Will contain probabilities as dict values
 
-    if(!OnnxRun(g_onnx_handle, ONNX_NO_CONVERSION, input, output_probs))
+    if(!OnnxRun(g_onnx_handle, ONNX_NO_CONVERSION, input_data, output_probs))
     {
         Print("ERROR: ONNX prediction failed");
         return false;
     }
 
-    //--- CRITICAL: LightGBM ONNX outputs probabilities as 3 values
-    //    output_probs[0] = P(class 0 = SHORT)
-    //    output_probs[1] = P(class 1 = HOLD)
-    //    output_probs[2] = P(class 2 = LONG)
+    //--- CRITICAL: Neural Network ONNX outputs probabilities as 3 values
+    //    The model predicts which class has highest probability
+    //    signal 0 = SHORT, signal 1 = HOLD, signal 2 = LONG
+    //    output_probs[signal] = confidence for that class
 
     if(ArraySize(output_probs) < 3)
     {
