@@ -83,14 +83,17 @@ int OnInit()
     //    This is required per MQL5 article!
     Print("Setting ONNX input/output shapes...");
 
-    if(!OnnxSetInputShape(g_onnx_handle, 0, BATCH_SIZE, INPUT_SIZE))
+    ulong input_shape[] = {BATCH_SIZE, INPUT_SIZE};
+    ulong output_shape[] = {BATCH_SIZE, OUTPUT_SIZE};
+
+    if(!OnnxSetInputShape(g_onnx_handle, 0, input_shape))
     {
         Print("ERROR: Failed to set input shape [", BATCH_SIZE, ", ", INPUT_SIZE, "]");
         Print("Error code: ", GetLastError());
         return INIT_FAILED;
     }
 
-    if(!OnnxSetOutputShape(g_onnx_handle, 0, BATCH_SIZE, OUTPUT_SIZE))
+    if(!OnnxSetOutputShape(g_onnx_handle, 0, output_shape))
     {
         Print("ERROR: Failed to set output shape [", BATCH_SIZE, ", ", OUTPUT_SIZE, "]");
         Print("Error code: ", GetLastError());
@@ -101,15 +104,17 @@ int OnInit()
 
     //--- Step 3: Test ONNX model with dummy data
     Print("Testing ONNX inference with dummy data...");
-    float test_input[INPUT_SIZE];
-    float test_output[OUTPUT_SIZE];
+
+    // Use dynamic arrays for ONNX
+    float test_input[];
+    float test_output[];
+
+    ArrayResize(test_input, INPUT_SIZE);
+    ArrayResize(test_output, OUTPUT_SIZE);
 
     // Fill with test values
     for(int i = 0; i < INPUT_SIZE; i++)
-        test_input[i] = (float)MathRandomUniform(0.0, 1.0);
-
-    // Resize output array (REQUIRED per article!)
-    ArrayResize(test_output, OUTPUT_SIZE);
+        test_input[i] = (float)(MathRand() / 32767.0);
 
     if(!OnnxRun(g_onnx_handle, ONNX_NO_CONVERSION, test_input, test_output))
     {
@@ -286,6 +291,7 @@ bool CalculateFeatures(float &features[])
     features[13] = (float)ema50[idx];
 
     //--- Time
+    MqlDateTime dt;
     TimeToStruct(rates[idx].time, dt);
     features[14] = (float)MathSin(2.0 * M_PI * dt.hour / 24.0);
     features[15] = (float)MathCos(2.0 * M_PI * dt.hour / 24.0);
@@ -303,7 +309,7 @@ bool CalculateFeatures(float &features[])
 bool GetMLPrediction(const float &features[], int &signal, double &confidence)
 {
     //--- Prepare output array (MUST resize first!)
-    float output_probs[OUTPUT_SIZE];
+    float output_probs[];
     ArrayResize(output_probs, OUTPUT_SIZE);
     ArrayInitialize(output_probs, 0.0);
 
