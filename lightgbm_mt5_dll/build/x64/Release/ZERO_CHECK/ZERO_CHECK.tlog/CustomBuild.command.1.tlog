@@ -1,0 +1,10 @@
+^C:\USERS\KRAFTLAB\.CLAUDE-WORKTREES\XAUBOT\DETERMINED-CURIE\LIGHTGBM_MT5_DLL\BUILD\CMAKEFILES\644A4D262482E46F00792844AC8E34C5\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/KRAFTLAB/.claude-worktrees/xaubot/determined-curie/lightgbm_mt5_dll -BC:/Users/KRAFTLAB/.claude-worktrees/xaubot/determined-curie/lightgbm_mt5_dll/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/KRAFTLAB/.claude-worktrees/xaubot/determined-curie/lightgbm_mt5_dll/build/lightgbm_mt5_dll.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

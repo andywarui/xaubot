@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(cat:*)",
+      "Bash(ls:*)",
+      "Bash(powershell -Command:*)",
+      "Bash(python:*)",
+      "Bash(cmake:*)",
+      "Bash(copy \"lightgbm_mt5_dll\\\\build\\\\bin\\\\Release\\\\lightgbm_mt5.dll\" \"C:\\\\Users\\\\KRAFTLAB\\\\AppData\\\\Roaming\\\\MetaQuotes\\\\Terminal\\\\D0E8209F77C8CF37AD8BF550E51FF075\\\\MQL5\\\\Libraries\\\\lightgbm_mt5.dll\")",
+      "Bash(copy \"lightgbm_mt5_dll\\\\build\\\\bin\\\\Release\\\\lib_lightgbm.dll\" \"C:\\\\Users\\\\KRAFTLAB\\\\AppData\\\\Roaming\\\\MetaQuotes\\\\Terminal\\\\D0E8209F77C8CF37AD8BF550E51FF075\\\\MQL5\\\\Libraries\\\\lib_lightgbm.dll\")",
+      "Bash(dir \"C:\\\\Users\\\\KRAFTLAB\\\\AppData\\\\Roaming\\\\MetaQuotes\\\\Terminal\\\\D0E8209F77C8CF37AD8BF550E51FF075\\\\MQL5\\\\Libraries\\\\*.dll\")"
+    ]
+  }
+}

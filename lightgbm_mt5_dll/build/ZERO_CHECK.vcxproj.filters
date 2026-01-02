@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\KRAFTLAB\.claude-worktrees\xaubot\determined-curie\lightgbm_mt5_dll\build\CMakeFiles\644a4d262482e46f00792844ac8e34c5\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{05DCA1A8-CFD8-359F-AE5A-CB426001E407}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
